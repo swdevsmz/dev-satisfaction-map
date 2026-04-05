@@ -5,7 +5,7 @@ import RadarChartComponent from '../components/charts/RadarChartComponent'
 import ComparisonBarChart from '../components/charts/ComparisonBarChart'
 
 export default function Home() {
-  const { companies, ranked, selectedId, setSelectedId, selectedCompany } = useCompanyData()
+  const { companies, ranked, selectedId, setSelectedId, selectedCompany, isLoading, error } = useCompanyData()
 
   return (
     <>
@@ -28,41 +28,56 @@ export default function Home() {
           </p>
         </section>
 
-        {/* Main layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left: Company cards */}
-          <div className="lg:col-span-2">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">企業一覧</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {companies.map((company) => (
-                <CompanyCard
-                  key={company.id}
-                  company={company}
-                  isSelected={selectedId === company.id}
-                  onClick={() => setSelectedId(company.id)}
-                />
-              ))}
-            </div>
+        {isLoading && (
+          <div className="flex justify-center items-center py-24">
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-green-500 border-t-transparent" />
           </div>
+        )}
 
-          {/* Right: Charts panel */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
-              <h2 className="text-lg font-semibold text-gray-800 mb-1">
-                {selectedCompany.name}
-              </h2>
-              <p className="text-xs text-gray-400 mb-4">スコアバランス（カードをクリックで切替）</p>
-              <div className="h-72">
-                <RadarChartComponent company={selectedCompany} height={288} />
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center text-red-700">
+            データの取得に失敗しました: {error}
+          </div>
+        )}
+
+        {!isLoading && !error && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left: Company cards */}
+            <div className="lg:col-span-2">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">企業一覧</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {companies.map((company) => (
+                  <CompanyCard
+                    key={company.id}
+                    company={company}
+                    isSelected={selectedId === company.id}
+                    onClick={() => setSelectedId(company.id)}
+                  />
+                ))}
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">幸福度ランキング</h2>
-              <ComparisonBarChart companies={ranked} />
+            {/* Right: Charts panel */}
+            <div className="space-y-6">
+              {selectedCompany && (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+                  <h2 className="text-lg font-semibold text-gray-800 mb-1">
+                    {selectedCompany.name}
+                  </h2>
+                  <p className="text-xs text-gray-400 mb-4">スコアバランス（カードをクリックで切替）</p>
+                  <div className="h-72">
+                    <RadarChartComponent company={selectedCompany} height={288} />
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">幸福度ランキング</h2>
+                <ComparisonBarChart companies={ranked} />
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </main>
     </>
   )

@@ -1,6 +1,6 @@
 import { useParams, Navigate, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { mockCompanies } from '../data/mockData'
+import { useCompanyById } from '../hooks/useCompanyById'
 import type { CompanyScores } from '../types/company'
 import ScoreBadge from '../components/company/ScoreBadge'
 import RadarChartComponent from '../components/charts/RadarChartComponent'
@@ -53,10 +53,33 @@ function normalizeForDisplay(scores: CompanyScores) {
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>()
-  const company = mockCompanies.find((c) => c.id === id)
+  const { company, isLoading, error } = useCompanyById(id)
 
-  if (!company) {
+  if (isLoading) {
+    return (
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-center items-center py-24">
+          <div className="animate-spin rounded-full h-10 w-10 border-4 border-green-500 border-t-transparent" />
+        </div>
+      </main>
+    )
+  }
+
+  if (error === 'Company not found' || !company) {
     return <Navigate to="/" replace />
+  }
+
+  if (error) {
+    return (
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Link to="/" className="inline-block text-sm text-green-700 hover:underline mb-6">
+          ← 一覧に戻る
+        </Link>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center text-red-700">
+          データの取得に失敗しました: {error}
+        </div>
+      </main>
+    )
   }
 
   const normalized = normalizeForDisplay(company.scores)
