@@ -15,6 +15,7 @@ pnpm-debug.log*
 .env.*
 !.env.example
 !.env.local.sample
+pipeline.env
 
 # editor and OS files
 .DS_Store
