@@ -1,0 +1,69 @@
+import { Helmet } from 'react-helmet-async'
+import { useCompanyData } from '../hooks/useCompanyData'
+import CompanyCard from '../components/company/CompanyCard'
+import RadarChartComponent from '../components/charts/RadarChartComponent'
+import ComparisonBarChart from '../components/charts/ComparisonBarChart'
+
+export default function Home() {
+  const { companies, ranked, selectedId, setSelectedId, selectedCompany } = useCompanyData()
+
+  return (
+    <>
+      <Helmet>
+        <title>エンジニア幸福度マップ | エンジニアが輝ける会社を探そう</title>
+        <meta
+          name="description"
+          content="技術スタック・リモート率・残業時間・定着率などを独自スコアで可視化。エンジニア転職で本当に良い会社を見つけよう。"
+        />
+      </Helmet>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Hero */}
+        <section className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+            エンジニア幸福度マップ
+          </h1>
+          <p className="text-gray-500 text-lg max-w-xl mx-auto">
+            求人データから読み解く、エンジニアが幸せに働ける会社ランキング
+          </p>
+        </section>
+
+        {/* Main layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left: Company cards */}
+          <div className="lg:col-span-2">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">企業一覧</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {companies.map((company) => (
+                <CompanyCard
+                  key={company.id}
+                  company={company}
+                  isSelected={selectedId === company.id}
+                  onClick={() => setSelectedId(company.id)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Right: Charts panel */}
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">
+                {selectedCompany.name}
+              </h2>
+              <p className="text-xs text-gray-400 mb-4">スコアバランス（カードをクリックで切替）</p>
+              <div className="h-72">
+                <RadarChartComponent company={selectedCompany} height={288} />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">幸福度ランキング</h2>
+              <ComparisonBarChart companies={ranked} />
+            </div>
+          </div>
+        </div>
+      </main>
+    </>
+  )
+}

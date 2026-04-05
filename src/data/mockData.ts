@@ -1,0 +1,105 @@
+import type { Company } from '../types/company'
+import { calculateHappinessScore } from '../utils/scoring'
+
+export const mockCompanies: Company[] = [
+  {
+    id: 'mercari-jp',
+    name: 'メルカリ',
+    description: 'Go・Kubernetesを中心としたモダンなマイクロサービスアーキテクチャ。フルリモート可で自律的な働き方を推奨。エンジニアの技術投資に積極的。',
+    industry: 'ECプラットフォーム',
+    employeeCount: 2000,
+    location: '東京都港区',
+    scores: {
+      techStackModernity: 9,
+      remoteRate: 90,
+      estimatedOvertimeHours: 15,
+      turnoverRate: 18,
+      retentionRate: 82,
+      devEnvironment: 9,
+      skillUpSupport: 8,
+    },
+    happinessScore: 0,
+    tags: ['Go', 'Kubernetes', 'React', 'リモートOK', 'フルスタック'],
+  },
+  {
+    id: 'smarthr',
+    name: 'SmartHR',
+    description: 'HR Techのリーディングカンパニー。Ruby on Rails + ReactのモダンなSaaS開発。定着率が高く、心理的安全性を重視したカルチャー。',
+    industry: 'HR Tech / SaaS',
+    employeeCount: 800,
+    location: '東京都港区',
+    scores: {
+      techStackModernity: 8,
+      remoteRate: 95,
+      estimatedOvertimeHours: 10,
+      turnoverRate: 8,
+      retentionRate: 92,
+      devEnvironment: 8,
+      skillUpSupport: 7,
+    },
+    happinessScore: 0,
+    tags: ['Ruby', 'React', 'TypeScript', 'リモートOK', 'SaaS'],
+  },
+  {
+    id: 'cyberagent',
+    name: 'サイバーエージェント',
+    description: 'Abema TVやAmeba等の大規模サービスを展開。技術カンファレンスへの参加支援が充実。成長意欲の高いエンジニアが集まる環境。',
+    industry: 'インターネット総合',
+    employeeCount: 6000,
+    location: '東京都渋谷区',
+    scores: {
+      techStackModernity: 7,
+      remoteRate: 60,
+      estimatedOvertimeHours: 30,
+      turnoverRate: 25,
+      retentionRate: 75,
+      devEnvironment: 7,
+      skillUpSupport: 9,
+    },
+    happinessScore: 0,
+    tags: ['Go', 'Kotlin', 'Swift', 'Scala', 'スキルアップ支援充実'],
+  },
+  {
+    id: 'freee',
+    name: 'freee',
+    description: 'クラウド会計・HR SaaSのパイオニア。Ruby・Javaの堅実な技術スタックにモダンなフロントエンドを組み合わせ。開発環境への投資が手厚い。',
+    industry: 'FinTech / SaaS',
+    employeeCount: 1500,
+    location: '東京都品川区',
+    scores: {
+      techStackModernity: 7,
+      remoteRate: 80,
+      estimatedOvertimeHours: 20,
+      turnoverRate: 15,
+      retentionRate: 85,
+      devEnvironment: 9,
+      skillUpSupport: 7,
+    },
+    happinessScore: 0,
+    tags: ['Ruby', 'Java', 'React', 'TypeScript', 'リモート可'],
+  },
+  {
+    id: 'rakuten-tech',
+    name: '楽天テクノロジー',
+    description: '楽天グループの巨大なシステム基盤を支える。技術的負債も多いがスケールの大きな課題に取り組める。グローバルな開発環境。',
+    industry: 'ECプラットフォーム / 金融',
+    employeeCount: 28000,
+    location: '東京都世田谷区',
+    scores: {
+      techStackModernity: 4,
+      remoteRate: 40,
+      estimatedOvertimeHours: 45,
+      turnoverRate: 30,
+      retentionRate: 70,
+      devEnvironment: 5,
+      skillUpSupport: 5,
+    },
+    happinessScore: 0,
+    tags: ['Java', 'PHP', '大規模システム', 'グローバル'],
+  },
+]
+
+// 定義時にスコアを算出して上書き
+mockCompanies.forEach((company) => {
+  company.happinessScore = calculateHappinessScore(company.scores)
+})

@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "Vite + React: Dev & Debug",
+      "configurations": ["Vite: Start dev server", "Chrome: Debug app"]
+    }
+  ],
+  "configurations": [
+    {
+      "name": "Vite: Start dev server",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev"
+    },
+    {
+      "name": "Chrome: Debug app",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}"
+    }
+  ]
+}
