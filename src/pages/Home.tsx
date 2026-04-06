@@ -1,18 +1,31 @@
 import { Helmet } from 'react-helmet-async'
 import { useCompanyData } from '../hooks/useCompanyData'
 import { usePersonalWeights } from '../hooks/usePersonalWeights'
+import { useCompanyFilter } from '../hooks/useCompanyFilter'
 import { calculatePersonalScore } from '../utils/scoring'
 import CompanyCard from '../components/company/CompanyCard'
 import RadarChartComponent from '../components/charts/RadarChartComponent'
 import ComparisonBarChart from '../components/charts/ComparisonBarChart'
 import PersonalWeightPanel from '../components/filter/PersonalWeightPanel'
+import CompanyFilterBar from '../components/filter/CompanyFilterBar'
 
 export default function Home() {
-  const { companies, ranked, selectedId, setSelectedId, selectedCompany, isLoading, error } = useCompanyData()
+  const { companies, selectedId, setSelectedId, selectedCompany, isLoading, error } = useCompanyData()
   const { weights, updateWeight, resetWeights, isPersonalized, sortByPersonal } = usePersonalWeights()
+  const {
+    keyword, setKeyword,
+    minScore, setMinScore,
+    minRemoteRate, setMinRemoteRate,
+    selectedTags, toggleTag,
+    availableTags,
+    filtered,
+    activeCount, isFiltered,
+    reset: resetFilter,
+  } = useCompanyFilter(companies)
 
-  const displayList = isPersonalized ? sortByPersonal(companies) : companies
-  const rankedList  = isPersonalized ? sortByPersonal(ranked)    : ranked
+  const filteredRanked = [...filtered].sort((a, b) => b.happinessScore - a.happinessScore)
+  const displayList    = isPersonalized ? sortByPersonal(filtered)       : filtered
+  const rankedList     = isPersonalized ? sortByPersonal(filteredRanked) : filteredRanked
 
   return (
     <>
@@ -58,6 +71,23 @@ export default function Home() {
                 onReset={resetWeights}
               />
 
+              <CompanyFilterBar
+                keyword={keyword}
+                onKeywordChange={setKeyword}
+                minScore={minScore}
+                onScoreChange={setMinScore}
+                minRemoteRate={minRemoteRate}
+                onRemoteRateChange={setMinRemoteRate}
+                selectedTags={selectedTags}
+                onTagToggle={toggleTag}
+                availableTags={availableTags}
+                activeCount={activeCount}
+                isFiltered={isFiltered}
+                onReset={resetFilter}
+                filteredCount={filtered.length}
+                totalCount={companies.length}
+              />
+
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-800">企業一覧</h2>
                 <span className="text-xs text-gray-400">
@@ -65,25 +95,37 @@ export default function Home() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {displayList.map((company) => (
-                  <CompanyCard
-                    key={company.id}
-                    company={company}
-                    isSelected={selectedId === company.id}
-                    onClick={() => setSelectedId(company.id)}
-                    personalScore={
-                      isPersonalized
-                        ? calculatePersonalScore(company.scores, weights)
-                        : undefined
-                    }
-                  />
-                ))}
-              </div>
+              {isFiltered && filtered.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <p className="text-gray-400 text-sm mb-4">該当する企業が見つかりません</p>
+                  <button
+                    onClick={resetFilter}
+                    className="text-sm text-green-600 hover:text-green-700 underline"
+                  >
+                    フィルターをリセット
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {displayList.map((company) => (
+                    <CompanyCard
+                      key={company.id}
+                      company={company}
+                      isSelected={selectedId === company.id}
+                      onClick={() => setSelectedId(company.id)}
+                      personalScore={
+                        isPersonalized
+                          ? calculatePersonalScore(company.scores, weights)
+                          : undefined
+                      }
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Right: Charts panel */}
-            <div className="space-y-6">
+            <div className="space-y-6 sticky top-20 self-start">
               {selectedCompany && (
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
                   <h2 className="text-lg font-semibold text-gray-800 mb-1">
