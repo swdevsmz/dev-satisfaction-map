@@ -1,16 +1,17 @@
 import * as cheerio from 'cheerio'
 import type { ScrapedDocument } from '../types.js'
 
-// OpenWork の企業IDマッピング（companyId → openwork社内ID）
+// OpenWork の企業IDマッピング（companyId → openwork m_id）
+// URL形式: https://www.openwork.jp/company_answer.php?m_id=<ID>
 const OPENWORK_ID_MAP: Record<string, string> = {
-  'mercari-jp':      '35816',
-  'cyberagent':      '11750',
-  'rakuten':         '5718',
-  'line-corp':       '26289',
-  'freee':           '42127',
-  'money-forward':   '36091',
-  'wealthnavi':      '48793',
-  'sakura-internet': '8374',
+  'mercari-jp':      'a0C1000000s1nIR',
+  'cyberagent':      'a0910000000Fr7M',
+  'rakuten':         'a0910000000Fr7P',
+  'line-corp':       'a0910000000G1So',
+  'freee':           'a0C1000000sgO4l',
+  'money-forward':   'a0C1000000sgO47',
+  'wealthnavi':      'a0C1000000vBCLp',
+  'sakura-internet': 'a0910000000G18o',
   // 必要に応じて追加
 }
 
@@ -52,11 +53,11 @@ function resolveCandidateUrls(companyId: string): string[] {
     }
   }
 
-  // 互換: 既存の m=ID ベースURL
+  // m_id ベースURL（新形式）— company.php を優先（評価・残業・離職データあり）
   const openworkId = OPENWORK_ID_MAP[companyId]
   if (openworkId) {
-    candidates.push(`https://www.openwork.jp/company_evaluation.php?m=${ openworkId }&vm=evaluate_category`)
-    candidates.push(`https://www.openwork.jp/company_answer.php?m=${ openworkId }`)
+    candidates.push(`https://www.openwork.jp/company.php?m_id=${ openworkId }`)
+    candidates.push(`https://www.openwork.jp/company_answer.php?m_id=${ openworkId }`)
   }
 
   return [...new Set(candidates)]
@@ -111,25 +112,26 @@ async function fetchFirstAvailablePage(urls: string[], headers: Record<string, s
 
 function hasBlockedOrErrorContent($: cheerio.CheerioAPI): boolean {
   const title = $('title').text().trim()
-  const bodyText = $('body').text().replaceAll(/\s+/g, ' ')
   return (
     /403|forbidden|access denied/i.test(title) ||
     /404|not found|エラーが発生しました/i.test(title) ||
-    /アクセスを拒否|bot|captcha|認証/i.test(bodyText)
+    /アクセスを拒否|captcha|ロボット/i.test(title)
   )
 }
 
 function pushRatingLines(lines: string[], $: cheerio.CheerioAPI) {
   const seen = new Set<string>()
 
-  const overallSelectors = ['.overall_rating_point', '[class*="overall"] [class*="point"]']
-  for (const selector of overallSelectors) {
-    const overall = $(selector).first().text().trim()
-    if (overall) {
-      lines.push(`総合評価: ${ overall }`)
-      break
-    }
-  }
+  // JSON-LD から総合評価スコアを抽出
+  $('script[type="application/ld+json"]').each((_, el) => {
+    try {
+      const json = JSON.parse($(el).text()) as Record<string, unknown>
+      if (json['@type'] === 'EmployerAggregateRating' && json.ratingValue) {
+        const row = `総合評価スコア（5点満点）: ${ json.ratingValue }`
+        if (!seen.has(row)) { lines.push(row); seen.add(row) }
+      }
+    } catch { /* ignore */ }
+  })
 
   const categoryRows = $('.evaluate_category_list li, .evaluation_list li, [class*="category"] li')
   categoryRows.each((_, el) => {
@@ -137,11 +139,31 @@ function pushRatingLines(lines: string[], $: cheerio.CheerioAPI) {
     const score = $(el).find('.point, [class*="point"]').first().text().trim()
     if (!label || !score) return
     const row = `${ label }: ${ score }`
-    if (!seen.has(row)) {
-      lines.push(row)
-      seen.add(row)
+    if (!seen.has(row)) { lines.push(row); seen.add(row) }
+  })
+
+  // dt/dd 形式のデータ（残業時間など）— 最初の値のみ取得
+  $('dt').each((_, dt) => {
+    const label = $(dt).text().trim()
+    if (!label) return
+    const ddText = $(dt).next('dd').find('span.fs-14, span').first().text().trim()
+      || $(dt).next('dd').text().trim()
+    if (!ddText || ddText.length > 50) return
+    const row = `${ label }: ${ ddText }`
+    if (!seen.has(row)) { lines.push(row); seen.add(row) }
+  })
+
+  // 採用者数・離職者数（turnover計算のため）
+  const hiringData: string[] = []
+  $('dd.d-ib.ml-20').each((_, el) => {
+    const text = $(el).text().trim()
+    if (/採用者数|離職者数/.test(text)) {
+      hiringData.push(text)
     }
   })
+  if (hiringData.length > 0) {
+    lines.push(`採用・離職データ: ${ hiringData.slice(0, 3).join(' / ') }`)
+  }
 }
 
 function pushReviewLines(lines: string[], $: cheerio.CheerioAPI) {
