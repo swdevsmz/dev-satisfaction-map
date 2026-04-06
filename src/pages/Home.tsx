@@ -1,11 +1,18 @@
 import { Helmet } from 'react-helmet-async'
 import { useCompanyData } from '../hooks/useCompanyData'
+import { usePersonalWeights } from '../hooks/usePersonalWeights'
+import { calculatePersonalScore } from '../utils/scoring'
 import CompanyCard from '../components/company/CompanyCard'
 import RadarChartComponent from '../components/charts/RadarChartComponent'
 import ComparisonBarChart from '../components/charts/ComparisonBarChart'
+import PersonalWeightPanel from '../components/filter/PersonalWeightPanel'
 
 export default function Home() {
   const { companies, ranked, selectedId, setSelectedId, selectedCompany, isLoading, error } = useCompanyData()
+  const { weights, updateWeight, resetWeights, isPersonalized, sortByPersonal } = usePersonalWeights()
+
+  const displayList = isPersonalized ? sortByPersonal(companies) : companies
+  const rankedList  = isPersonalized ? sortByPersonal(ranked)    : ranked
 
   return (
     <>
@@ -42,16 +49,34 @@ export default function Home() {
 
         {!isLoading && !error && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left: Company cards */}
+            {/* Left: Personal filter + Company cards */}
             <div className="lg:col-span-2">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">企業一覧</h2>
+              <PersonalWeightPanel
+                weights={weights}
+                isPersonalized={isPersonalized}
+                onUpdate={updateWeight}
+                onReset={resetWeights}
+              />
+
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-800">企業一覧</h2>
+                <span className="text-xs text-gray-400">
+                  {isPersonalized ? '🎯 マッチ度順' : '🏆 幸福度スコア順'}
+                </span>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {companies.map((company) => (
+                {displayList.map((company) => (
                   <CompanyCard
                     key={company.id}
                     company={company}
                     isSelected={selectedId === company.id}
                     onClick={() => setSelectedId(company.id)}
+                    personalScore={
+                      isPersonalized
+                        ? calculatePersonalScore(company.scores, weights)
+                        : undefined
+                    }
                   />
                 ))}
               </div>
@@ -72,8 +97,10 @@ export default function Home() {
               )}
 
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">幸福度ランキング</h2>
-                <ComparisonBarChart companies={ranked} />
+                <h2 className="text-lg font-semibold text-gray-800 mb-1">
+                  {isPersonalized ? 'マッチ度ランキング' : '幸福度ランキング'}
+                </h2>
+                <ComparisonBarChart companies={rankedList} />
               </div>
             </div>
           </div>

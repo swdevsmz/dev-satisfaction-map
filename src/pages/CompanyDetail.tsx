@@ -1,28 +1,38 @@
 import { useParams, Navigate, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useCompanyById } from '../hooks/useCompanyById'
-import type { CompanyScores } from '../types/company'
 import ScoreBadge from '../components/company/ScoreBadge'
+import SourceBadge from '../components/company/SourceBadge'
+import ReliabilityIndicator from '../components/company/ReliabilityIndicator'
 import RadarChartComponent from '../components/charts/RadarChartComponent'
-import { getScoreColor } from '../utils/scoring'
+import { getScoreColor, normalizeScores } from '../utils/scoring'
+import { METRIC_SOURCE_MAP, type SourceName } from '../constants/sourceMetricMap'
+import type { MetricKey } from '../constants/sourceMetricMap'
 
 interface MetricRowProps {
   label: string
+  metricKey: MetricKey
   value: number
   unit: string
   inverted?: boolean
   normalizedValue: number
+  acquiredSources: Set<string>
 }
 
-function MetricRow({ label, value, unit, inverted = false, normalizedValue }: MetricRowProps) {
-  const barColor = inverted
-    ? normalizedValue >= 70 ? 'bg-green-500' : normalizedValue >= 40 ? 'bg-yellow-500' : 'bg-red-500'
-    : normalizedValue >= 70 ? 'bg-green-500' : normalizedValue >= 40 ? 'bg-yellow-500' : 'bg-red-500'
+function MetricRow({ label, metricKey, value, unit, inverted = false, normalizedValue, acquiredSources }: MetricRowProps) {
+  const barColor = normalizedValue >= 70 ? 'bg-green-500' : normalizedValue >= 40 ? 'bg-yellow-500' : 'bg-red-500'
+  const sourceKey = METRIC_SOURCE_MAP[metricKey]
+  const acquired = sourceKey ? acquiredSources.has(sourceKey) : false
 
   return (
     <div className="py-3 border-b border-gray-100 last:border-0">
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-sm text-gray-600">{label}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">{label}</span>
+          {sourceKey && (
+            <SourceBadge source={sourceKey as SourceName} acquired={acquired} />
+          )}
+        </div>
         <span className="text-sm font-semibold text-gray-800">
           {value}
           {unit}
@@ -37,18 +47,6 @@ function MetricRow({ label, value, unit, inverted = false, normalizedValue }: Me
       </div>
     </div>
   )
-}
-
-function normalizeForDisplay(scores: CompanyScores) {
-  return {
-    techStackModernity: ((scores.techStackModernity - 1) / 9) * 100,
-    remoteRate: scores.remoteRate,
-    estimatedOvertimeHours: Math.max(0, ((80 - scores.estimatedOvertimeHours) / 80) * 100),
-    turnoverRate: Math.max(0, 100 - scores.turnoverRate),
-    retentionRate: scores.retentionRate,
-    devEnvironment: ((scores.devEnvironment - 1) / 9) * 100,
-    skillUpSupport: ((scores.skillUpSupport - 1) / 9) * 100,
-  }
 }
 
 export default function CompanyDetail() {
@@ -82,7 +80,8 @@ export default function CompanyDetail() {
     )
   }
 
-  const normalized = normalizeForDisplay(company.scores)
+  const normalized = normalizeScores(company.scores)
+  const acquiredSources = new Set(company.dataSources.map((d) => d.source))
   const scoreColorClass = {
     green: 'text-green-700',
     yellow: 'text-yellow-700',
@@ -129,6 +128,12 @@ export default function CompanyDetail() {
               </span>
             ))}
           </div>
+
+          {/* 信頼度インジケーター */}
+          <ReliabilityIndicator
+            dataSources={company.dataSources}
+            dataUpdatedAt={company.dataUpdatedAt}
+          />
         </div>
 
         {/* Score breakdown */}
@@ -146,47 +151,61 @@ export default function CompanyDetail() {
             <h2 className="text-xl font-semibold text-gray-800 mb-2">各指標の詳細</h2>
             <MetricRow
               label="技術スタックの新しさ"
+              metricKey="techStackModernity"
               value={company.scores.techStackModernity}
               unit=" / 10"
               normalizedValue={normalized.techStackModernity}
+              acquiredSources={acquiredSources}
             />
             <MetricRow
               label="リモート率"
+              metricKey="remoteRate"
               value={company.scores.remoteRate}
               unit="%"
               normalizedValue={normalized.remoteRate}
+              acquiredSources={acquiredSources}
             />
             <MetricRow
               label="月間残業時間（推定）"
+              metricKey="estimatedOvertimeHours"
               value={company.scores.estimatedOvertimeHours}
               unit="時間"
               inverted
               normalizedValue={normalized.estimatedOvertimeHours}
+              acquiredSources={acquiredSources}
             />
             <MetricRow
               label="離職率（推定）"
+              metricKey="turnoverRate"
               value={company.scores.turnoverRate}
               unit="%"
               inverted
               normalizedValue={normalized.turnoverRate}
+              acquiredSources={acquiredSources}
             />
             <MetricRow
               label="定着率（推定）"
+              metricKey="retentionRate"
               value={company.scores.retentionRate}
               unit="%"
               normalizedValue={normalized.retentionRate}
+              acquiredSources={acquiredSources}
             />
             <MetricRow
               label="開発環境スコア"
+              metricKey="devEnvironment"
               value={company.scores.devEnvironment}
               unit=" / 10"
               normalizedValue={normalized.devEnvironment}
+              acquiredSources={acquiredSources}
             />
             <MetricRow
               label="スキルアップ支援"
+              metricKey="skillUpSupport"
               value={company.scores.skillUpSupport}
               unit=" / 10"
               normalizedValue={normalized.skillUpSupport}
+              acquiredSources={acquiredSources}
             />
           </div>
         </div>

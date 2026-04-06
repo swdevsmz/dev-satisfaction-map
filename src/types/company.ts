@@ -27,6 +27,8 @@ export interface Company {
   /** 0–100 の幸福度スコア（calculateHappinessScore()で算出済み） */
   happinessScore: number
   tags: string[]
+  /** companies.updated_at（一覧カードの鮮度表示用） */
+  dataUpdatedAt: string
 }
 
 /** Recharts RadarChart 用のデータ形式 */
@@ -34,4 +36,37 @@ export interface RadarDataPoint {
   subject: string
   value: number
   fullMark: 100
+}
+
+/** 指標ごとのユーザー重要度（0=気にしない〜3=最重視） */
+export interface UserWeights {
+  techStackModernity: number
+  remoteRate: number
+  estimatedOvertimeHours: number
+  turnoverRate: number
+  retentionRate: number
+  devEnvironment: number
+  skillUpSupport: number
+}
+
+export const DEFAULT_USER_WEIGHTS: UserWeights = {
+  techStackModernity: 0,
+  remoteRate: 0,
+  estimatedOvertimeHours: 0,
+  turnoverRate: 0,
+  retentionRate: 0,
+  devEnvironment: 0,
+  skillUpSupport: 0,
+}
+
+/** raw_documents の1件 */
+export interface DataSource {
+  source: 'connpass' | 'openwork' | 'ir' | 'github'
+  url: string | null
+  scrapedAt: string
+}
+
+/** Company + データソース情報（詳細ページ用） */
+export interface CompanyWithSources extends Company {
+  dataSources: DataSource[]
 }

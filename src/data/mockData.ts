@@ -19,6 +19,7 @@ export const mockCompanies: Company[] = [
       skillUpSupport: 8,
     },
     happinessScore: 0,
+    dataUpdatedAt: new Date().toISOString(),
     tags: ['Go', 'Kubernetes', 'React', 'リモートOK', 'フルスタック'],
   },
   {
@@ -38,6 +39,7 @@ export const mockCompanies: Company[] = [
       skillUpSupport: 7,
     },
     happinessScore: 0,
+    dataUpdatedAt: new Date().toISOString(),
     tags: ['Ruby', 'React', 'TypeScript', 'リモートOK', 'SaaS'],
   },
   {
@@ -57,6 +59,7 @@ export const mockCompanies: Company[] = [
       skillUpSupport: 9,
     },
     happinessScore: 0,
+    dataUpdatedAt: new Date().toISOString(),
     tags: ['Go', 'Kotlin', 'Swift', 'Scala', 'スキルアップ支援充実'],
   },
   {
@@ -76,6 +79,7 @@ export const mockCompanies: Company[] = [
       skillUpSupport: 7,
     },
     happinessScore: 0,
+    dataUpdatedAt: new Date().toISOString(),
     tags: ['Ruby', 'Java', 'React', 'TypeScript', 'リモート可'],
   },
   {
@@ -95,6 +99,7 @@ export const mockCompanies: Company[] = [
       skillUpSupport: 5,
     },
     happinessScore: 0,
+    dataUpdatedAt: new Date().toISOString(),
     tags: ['Java', 'PHP', '大規模システム', 'グローバル'],
   },
 ]

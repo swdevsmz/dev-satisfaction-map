@@ -1,4 +1,4 @@
-import type { CompanyScores, RadarDataPoint } from '../types/company'
+import type { CompanyScores, RadarDataPoint, UserWeights } from '../types/company'
 
 /** 各指標の重み（合計 1.00） */
 export const WEIGHTS = {
@@ -15,7 +15,7 @@ export const WEIGHTS = {
  * 各指標を 0–100 スケールに正規化する。
  * 残業時間・離職率は「少ないほど良い」ため反転する。
  */
-function normalizeScores(s: CompanyScores): Record<keyof CompanyScores, number> {
+export function normalizeScores(s: CompanyScores): Record<keyof CompanyScores, number> {
   return {
     techStackModernity: ((s.techStackModernity - 1) / 9) * 100,
     remoteRate: s.remoteRate,
@@ -56,6 +56,25 @@ export function toRadarData(s: CompanyScores): RadarDataPoint[] {
     { subject: '開発環境', value: Math.round(n.devEnvironment), fullMark: 100 },
     { subject: 'スキルアップ', value: Math.round(n.skillUpSupport), fullMark: 100 },
   ]
+}
+
+/**
+ * ユーザーの重み設定からパーソナルスコアを算出する（0–100）。
+ * 全ウェイトが0の場合は happinessScore にフォールバック。
+ */
+export function calculatePersonalScore(s: CompanyScores, weights: UserWeights): number {
+  const total = Object.values(weights).reduce((sum, w) => sum + w, 0)
+  if (total === 0) return calculateHappinessScore(s)
+  const n = normalizeScores(s)
+  const raw =
+    n.techStackModernity     * (weights.techStackModernity     / total) +
+    n.remoteRate             * (weights.remoteRate             / total) +
+    n.estimatedOvertimeHours * (weights.estimatedOvertimeHours / total) +
+    n.turnoverRate           * (weights.turnoverRate           / total) +
+    n.retentionRate          * (weights.retentionRate          / total) +
+    n.devEnvironment         * (weights.devEnvironment         / total) +
+    n.skillUpSupport         * (weights.skillUpSupport         / total)
+  return Math.round(Math.min(100, Math.max(0, raw)) * 10) / 10
 }
 
 /** スコアに応じたカラーカテゴリを返す */

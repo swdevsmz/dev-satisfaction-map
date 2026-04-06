@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom'
 import type { Company } from '../../types/company'
 import ScoreBadge from './ScoreBadge'
+import { formatRelativeDate } from '../../utils/reliability'
 
 interface CompanyCardProps {
   company: Company
   isSelected: boolean
   onClick: () => void
+  personalScore?: number
 }
 
-export default function CompanyCard({ company, isSelected, onClick }: CompanyCardProps) {
+export default function CompanyCard({ company, isSelected, onClick, personalScore }: CompanyCardProps) {
   return (
     <div
       onClick={onClick}
@@ -20,7 +22,12 @@ export default function CompanyCard({ company, isSelected, onClick }: CompanyCar
     >
       <div className="flex items-start justify-between mb-3 gap-2">
         <h3 className="font-bold text-lg text-gray-900 leading-tight">{company.name}</h3>
-        <ScoreBadge score={company.happinessScore} size="sm" />
+        <div className="flex flex-col items-end gap-1">
+          <ScoreBadge score={personalScore ?? company.happinessScore} size="sm" />
+          {personalScore !== undefined && (
+            <span className="text-xs text-green-600 font-medium">マッチ度</span>
+          )}
+        </div>
       </div>
 
       <p className="text-sm text-gray-500 mb-3 line-clamp-2">{company.description}</p>
@@ -44,13 +51,18 @@ export default function CompanyCard({ company, isSelected, onClick }: CompanyCar
         ))}
       </div>
 
-      <Link
-        to={`/company/${company.id}`}
-        onClick={(e) => e.stopPropagation()}
-        className="mt-4 block text-center text-sm text-green-700 hover:text-green-900 hover:underline font-medium"
-      >
-        詳細を見る →
-      </Link>
+      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
+        <span className="text-xs text-gray-400">
+          更新: {formatRelativeDate(company.dataUpdatedAt)}
+        </span>
+        <Link
+          to={`/company/${company.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="text-sm text-green-700 hover:text-green-900 hover:underline font-medium"
+        >
+          詳細を見る →
+        </Link>
+      </div>
     </div>
   )
 }

@@ -11,8 +11,22 @@ export interface CompanyRow {
   created_at: string; updated_at: string
 }
 
+export interface RawDocumentRow {
+  id: number
+  company_id: string
+  source: 'connpass' | 'openwork' | 'ir' | 'github'
+  url: string | null
+  content: string
+  scraped_at: string
+}
+
 interface Database {
-  public: { Tables: { companies: { Row: CompanyRow } } }
+  public: {
+    Tables: {
+      companies: { Row: CompanyRow }
+      raw_documents: { Row: RawDocumentRow }
+    }
+  }
 }
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
@@ -40,5 +54,6 @@ export function rowToCompany(row: CompanyRow): Company {
     industry: row.industry, employeeCount: row.employee_count,
     location: row.location, tags: row.tags,
     scores, happinessScore: calculateHappinessScore(scores),
+    dataUpdatedAt: row.updated_at,
   }
 }
