@@ -5,7 +5,7 @@ import type { Company } from '../types/company'
 export interface CompanyRow {
   id: string; name: string; description: string; industry: string
   employee_count: number; location: string; tags: string[]
-  created_at: string; updated_at: string
+  website?: string; created_at: string; updated_at: string
 }
 
 export interface CompanyScoreRow {
@@ -61,7 +61,7 @@ export function rowToCompany(row: CompanyRow, scoreRow: CompanyScoreRow | null):
   return {
     id: row.id, name: row.name, description: row.description,
     industry: row.industry, employeeCount: row.employee_count,
-    location: row.location, tags: row.tags,
+    location: row.location, tags: row.tags, website: row.website,
     scores, happinessScore: calculateHappinessScore(scores),
     dataUpdatedAt: scoreRow?.scored_at ?? row.updated_at,
   }

@@ -74,6 +74,11 @@ export default function CompanyDetail() {
   const { companies } = useCompanyData()
   const { trackEvent } = useAnalytics()
 
+  // ページ遷移時にスクロール位置をリセット
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [id])
+
   // 企業データ取得後に閲覧イベントを送る。
   // company が切り替わったタイミングだけ記録したいので id を依存配列に使う。
   useEffect(() => {
@@ -178,21 +183,22 @@ export default function CompanyDetail() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
             <div className="flex-1">
-              {company.website ? (
-                <a
-                  href={company.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-3xl font-bold text-green-700 hover:text-green-900 hover:underline inline-block"
-                >
-                  {company.name}
-                </a>
-              ) : (
-                <h1 className="text-3xl font-bold text-gray-900">{company.name}</h1>
-              )}
+              <h1 className="text-3xl font-bold text-gray-900">{company.name}</h1>
               <p className="text-gray-500 mt-1 text-sm">
                 {company.industry} · {company.location} · 従業員 {company.employeeCount.toLocaleString()}名
               </p>
+              {company.website && (
+                <p className="text-gray-600 mt-2">
+                  <a
+                    href={company.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-700 hover:text-green-900 hover:underline font-medium"
+                  >
+                    公式サイト →
+                  </a>
+                </p>
+              )}
               <p className="text-gray-600 mt-4 leading-relaxed">{company.description}</p>
             </div>
             <div className="flex flex-col items-center gap-1">

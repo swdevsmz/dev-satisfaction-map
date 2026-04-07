@@ -23,19 +23,7 @@ export default function CompanyCard({ company, isSelected, onClick, personalScor
       }`}
     >
       <div className="flex items-start justify-between mb-3 gap-2">
-        {company.website ? (
-          <a
-            href={company.website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-bold text-lg text-green-700 hover:text-green-900 hover:underline leading-tight"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {company.name}
-          </a>
-        ) : (
-          <h3 className="font-bold text-lg text-gray-900 leading-tight">{company.name}</h3>
-        )}
+        <h3 className="font-bold text-lg text-gray-900 leading-tight">{company.name}</h3>
         <div className="flex flex-col items-end gap-1">
           <ScoreBadge score={personalScore ?? company.happinessScore} size="sm" />
           {personalScore !== undefined && (
@@ -53,6 +41,20 @@ export default function CompanyCard({ company, isSelected, onClick, personalScor
         <span>·</span>
         <span>{company.employeeCount.toLocaleString()}名</span>
       </div>
+
+      {company.website && (
+        <div className="mb-3">
+          <a
+            href={company.website}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1 text-sm text-green-700 hover:text-green-900 hover:underline font-medium"
+          >
+            公式サイト →
+          </a>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-1.5">
         {company.tags.map((tag) => (
