@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { Company } from '../types/company'
-import { supabase, rowToCompany } from '../lib/supabase'
+import { supabase, rowToCompany, type CompanyScoreRow } from '../lib/supabase'
 
 export function useCompanyData() {
   const [companies, setCompanies] = useState<Company[]>([])
@@ -12,10 +12,24 @@ export function useCompanyData() {
     let cancelled = false
     async function fetch() {
       setIsLoading(true); setError(null)
-      const { data, error: e } = await supabase.from('companies').select('*').order('name')
+
+      // 2つのクエリを並列実行（PostgREST の埋め込みリソースが不安定な場合の対応）
+      const [{ data: companies, error: e1 }, { data: scores, error: e2 }] = await Promise.all([
+        supabase.from('companies').select('*').order('name'),
+        supabase.from('company_scores').select('*'),
+      ])
+
       if (cancelled) return
-      if (e) { setError(e.message); setIsLoading(false); return }
-      const mapped = (data ?? []).map(rowToCompany)
+      if (e1 || e2) { setError((e1 || e2)?.message ?? 'Unknown error'); setIsLoading(false); return }
+
+      // スコアデータをマップに変換（O(1) 参照用）
+      const scoresMap = new Map((scores ?? []).map(s => [s.company_id, s]))
+
+      const mapped = (companies ?? []).map(companyRow => {
+        const scoreRow = scoresMap.get(companyRow.id) ?? null
+        return rowToCompany(companyRow, scoreRow as CompanyScoreRow | null)
+      })
+
       setCompanies(mapped)
       if (mapped.length > 0 && selectedId === null) {
         setSelectedId([...mapped].sort((a, b) => b.happinessScore - a.happinessScore)[0].id)

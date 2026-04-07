@@ -5,13 +5,18 @@ import type { Company } from '../types/company'
 export interface CompanyRow {
   id: string; name: string; description: string; industry: string
   employee_count: number; location: string; tags: string[]
-  tech_stack_modernity: number; remote_rate: number
-  estimated_overtime_hours: number; turnover_rate: number
-  retention_rate: number; dev_environment: number; skill_up_support: number
   created_at: string; updated_at: string
 }
 
-export interface RawDocumentRow {
+export interface CompanyScoreRow {
+  company_id: string
+  tech_stack_modernity: number; remote_rate: number
+  estimated_overtime_hours: number; turnover_rate: number
+  retention_rate: number; dev_environment: number; skill_up_support: number
+  scored_at: string
+}
+
+export interface CompanyScrapeRow {
   id: number
   company_id: string
   source: 'connpass' | 'openwork' | 'ir' | 'github'
@@ -20,11 +25,15 @@ export interface RawDocumentRow {
   scraped_at: string
 }
 
+// 後方互換性
+export type RawDocumentRow = CompanyScrapeRow
+
 interface Database {
   public: {
     Tables: {
       companies: { Row: CompanyRow }
-      raw_documents: { Row: RawDocumentRow }
+      company_scores: { Row: CompanyScoreRow }
+      company_scrapes: { Row: CompanyScrapeRow }
     }
   }
 }
@@ -39,21 +48,21 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 
 /** DB行(snake_case) → Company(camelCase)。happinessScore はここで計算。 */
-export function rowToCompany(row: CompanyRow): Company {
+export function rowToCompany(row: CompanyRow, scoreRow: CompanyScoreRow | null): Company {
   const scores = {
-    techStackModernity: row.tech_stack_modernity,
-    remoteRate: row.remote_rate,
-    estimatedOvertimeHours: row.estimated_overtime_hours,
-    turnoverRate: row.turnover_rate,
-    retentionRate: row.retention_rate,
-    devEnvironment: row.dev_environment,
-    skillUpSupport: row.skill_up_support,
+    techStackModernity: scoreRow?.tech_stack_modernity ?? 5,
+    remoteRate: scoreRow?.remote_rate ?? 50,
+    estimatedOvertimeHours: scoreRow?.estimated_overtime_hours ?? 30,
+    turnoverRate: scoreRow?.turnover_rate ?? 15,
+    retentionRate: scoreRow?.retention_rate ?? 80,
+    devEnvironment: scoreRow?.dev_environment ?? 5,
+    skillUpSupport: scoreRow?.skill_up_support ?? 5,
   }
   return {
     id: row.id, name: row.name, description: row.description,
     industry: row.industry, employeeCount: row.employee_count,
     location: row.location, tags: row.tags,
     scores, happinessScore: calculateHappinessScore(scores),
-    dataUpdatedAt: row.updated_at,
+    dataUpdatedAt: scoreRow?.scored_at ?? row.updated_at,
   }
 }

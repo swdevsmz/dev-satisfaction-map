@@ -6,6 +6,41 @@
 
 ---
 
+## アーキテクチャ
+
+```mermaid
+flowchart TB
+    subgraph Sources["データソース"]
+        GH[GitHub]
+        CP[connpass]
+        OW[OpenWork]
+        IR[IR資料]
+    end
+
+    subgraph Pipeline["収集パイプライン (Node.js / tsx)"]
+        SC[Scrapers]
+        LLM[Ollama gemma2\nスコア抽出]
+    end
+
+    subgraph DB["Supabase (PostgreSQL)"]
+        TBL[(companiesテーブル)]
+    end
+
+    subgraph Frontend["フロントエンド (React + Vite / Vercel)"]
+        HP[Home]
+        DP[CompanyDetail]
+        PP[PrivacyPolicy]
+    end
+
+    Sources --> SC
+    SC --> LLM
+    LLM --> TBL
+    TBL -->|Supabase JS Client| HP
+    TBL -->|Supabase JS Client| DP
+```
+
+---
+
 ## 主な機能
 
 ### フロントエンド
@@ -13,13 +48,18 @@
 | 機能 | 説明 |
 |------|------|
 | 企業カード一覧 | 幸福度スコア順に企業をカード表示。クリックでレーダーチャートを更新 |
-| 幸福度ランキング | 棒グラフで上位企業を比較 |
-| レーダーチャート | 選択企業の7指標バランスをレーダー表示 |
+| 幸福度ランキング | 棒グラフで上位企業を比較。クリックで詳細ページへ遷移 |
+| レーダーチャート | 選択企業の7指標バランスをレーダー表示（スクロール追従） |
 | 企業詳細ページ | 各指標の進捗バー・数値・データソースバッジを表示 |
 | **パーソナライズフィルタ** | 7指標ごとに重要度スライダー（0〜3段階）を設定し、自分軸のマッチ度順でランキングを並び替え。設定はlocalStorageに保存 |
+| **企業フィルター** | キーワード・スコア閾値・リモート率・技術タグで企業を絞り込み |
 | **データソースバッジ** | 各指標の隣に取得元ソース（GitHub・connpass・OpenWork・IR）を表示。未取得は点線表示 |
 | **信頼度インジケーター** | データの鮮度とソース数から信頼スコア（0〜100）を算出し、詳細ページに進捗バーで表示 |
-| SEO対応 | react-helmet-async によるページごとの title / meta description |
+| **関連企業** | 詳細ページで幸福度スコアが近い企業を最大4社表示 |
+| **シェア機能** | X（Twitter）・Facebookへのシェアボタン、URLコピーボタン |
+| **広告** | Google AdSense インフィード広告（5件ごとに挿入） |
+| **SEO対応** | react-helmet-async によるページごとの title / description / OGP / Twitter Card。JSON-LD構造化データ（WebSite・Organization）。canonical URL管理 |
+| **プライバシーポリシー** | Google Analytics・AdSense の利用・オプトアウト方法を記載 |
 
 ### データ収集パイプライン
 
@@ -78,6 +118,11 @@
 - Node.js + TypeScript (`tsx`)
 - cheerio（HTML解析）
 - Ollama gemma2（スコア抽出LLM）
+
+**テスト:**
+
+- Vitest
+- fast-check（プロパティベーステスト）
 
 ---
 
@@ -139,45 +184,64 @@ SPAルーティングは `vercel.json` で `index.html` にリライト済み。
 ```text
 src/
   components/
+    ads/
+      AdUnit.tsx                   # Google AdSense 広告ユニット
     charts/
-      RadarChartComponent.tsx    # レーダーチャート
-      ComparisonBarChart.tsx     # ランキング棒グラフ
+      RadarChartComponent.tsx      # レーダーチャート
+      ComparisonBarChart.tsx       # ランキング棒グラフ
     company/
-      CompanyCard.tsx            # 企業カード
-      ScoreBadge.tsx             # スコアバッジ
-      SourceBadge.tsx            # データソースバッジ（GitHub/connpass等）
-      ReliabilityIndicator.tsx   # 信頼度インジケーター
+      CompanyCard.tsx              # 企業カード
+      ScoreBadge.tsx               # スコアバッジ
+      SourceBadge.tsx              # データソースバッジ（GitHub/connpass等）
+      ReliabilityIndicator.tsx     # 信頼度インジケーター
+      RelatedCompanies.tsx         # 関連企業リスト
     filter/
-      PersonalWeightPanel.tsx    # パーソナライズフィルタUI
+      PersonalWeightPanel.tsx      # パーソナライズフィルタUI
+      CompanyFilterBar.tsx         # キーワード・タグ・スコアフィルター
+    layout/
+      Header.tsx
+      Footer.tsx
+    navigation/
+      Breadcrumb.tsx               # パンくずナビゲーション
+    seo/
+      JsonLd.tsx                   # JSON-LD構造化データ注入
+    share/
+      ShareButtons.tsx             # X・Facebookシェアボタン
+      CopyUrlButton.tsx            # URLコピーボタン
   constants/
-    sourceMetricMap.ts           # ソース×指標の静的マッピング
+    sourceMetricMap.ts             # ソース×指標の静的マッピング
   hooks/
-    useCompanyData.ts            # 企業一覧フェッチ
-    useCompanyById.ts            # 企業詳細 + raw_documents 並行フェッチ
-    usePersonalWeights.ts        # 重みスライダー状態 + localStorage
+    useCompanyData.ts              # 企業一覧フェッチ
+    useCompanyById.ts              # 企業詳細 + raw_documents 並行フェッチ
+    useCompanyFilter.ts            # フィルター状態管理
+    usePersonalWeights.ts          # 重みスライダー状態 + localStorage
+    useAnalytics.ts                # Google Analytics イベントトラッキング（DNT対応）
+    useClipboard.ts                # クリップボードコピー
   lib/
-    supabase.ts                  # Supabaseクライアント + rowToCompany
+    supabase.ts                    # Supabaseクライアント + rowToCompany
   pages/
-    Home.tsx                     # 企業一覧・フィルタ・チャートパネル
-    CompanyDetail.tsx            # 企業詳細・信頼度・ソースバッジ
+    Home.tsx                       # 企業一覧・フィルタ・チャートパネル
+    CompanyDetail.tsx              # 企業詳細・信頼度・ソースバッジ
+    PrivacyPolicy.tsx              # プライバシーポリシー
   types/
-    company.ts                   # Company / UserWeights / DataSource 型定義
+    company.ts                     # Company / UserWeights / DataSource 型定義
   utils/
-    scoring.ts                   # スコア算出・正規化・パーソナルスコア
-    reliability.ts               # 信頼度スコア・相対日付フォーマット
+    scoring.ts                     # スコア算出・正規化・パーソナルスコア
+    reliability.ts                 # 信頼度スコア・相対日付フォーマット
+    seo.ts                         # canonical URL・OGP・JSON-LD生成ユーティリティ
 
 pipeline/
-  run.ts                         # パイプラインエントリポイント
+  run.ts                           # パイプラインエントリポイント
   scrapers/
-    github.ts                    # GitHub スクレイパー
-    connpass.ts                  # connpass スクレイパー
-    openwork.ts                  # OpenWork スクレイパー（Cookie認証）
-    ir.ts                        # IR資料スクレイパー
+    github.ts                      # GitHub スクレイパー
+    connpass.ts                    # connpass スクレイパー
+    openwork.ts                    # OpenWork スクレイパー（Cookie認証）
+    ir.ts                          # IR資料スクレイパー
   maintenance/
-    fill-descriptions.ts         # description未設定企業の補完
+    fill-descriptions.ts           # description未設定企業の補完
 
 supabase/
-  migrations/                    # DBマイグレーション
+  migrations/                      # DBマイグレーション
 ```
 
 ## ライセンス

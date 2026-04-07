@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { CompanyWithSources, DataSource } from '../types/company'
-import { supabase, rowToCompany, type RawDocumentRow } from '../lib/supabase'
+import { supabase, rowToCompany, type CompanyScrapeRow, type CompanyScoreRow } from '../lib/supabase'
 
 export function useCompanyById(id: string | undefined) {
   const [company, setCompany] = useState<CompanyWithSources | null>(null)
@@ -15,10 +15,16 @@ export function useCompanyById(id: string | undefined) {
     async function fetch() {
       setIsLoading(true); setError(null); setCompany(null)
 
-      const [{ data: row, error: ce }, { data: docs }] = await Promise.all([
+      const [{ data: row, error: ce }, { data: scoreRow, error: se }, { data: docs }] = await Promise.all([
         supabase.from('companies').select('*').eq('id', companyId).single(),
+        supabase.from('company_scores').select('*').eq('company_id', companyId).single().then(result => {
+          // company_scores は 1:1 なので .single() だが、存在しない場合 404 が返る
+          // その場合は null を返す（デフォルト値を使用するため）
+          if (result.error?.code === 'PGRST116') return { data: null, error: null }
+          return result
+        }),
         supabase
-          .from('raw_documents')
+          .from('company_scrapes')
           .select('source, url, scraped_at')
           .eq('company_id', companyId),
       ])
@@ -30,13 +36,13 @@ export function useCompanyById(id: string | undefined) {
         return
       }
 
-      const dataSources: DataSource[] = ((docs ?? []) as Pick<RawDocumentRow, 'source' | 'url' | 'scraped_at'>[]).map((d) => ({
+      const dataSources: DataSource[] = ((docs ?? []) as Pick<CompanyScrapeRow, 'source' | 'url' | 'scraped_at'>[]).map((d) => ({
         source: d.source as DataSource['source'],
         url: d.url,
         scrapedAt: d.scraped_at,
       }))
 
-      setCompany({ ...rowToCompany(row), dataSources })
+      setCompany({ ...rowToCompany(row, scoreRow as CompanyScoreRow | null), dataSources })
       setIsLoading(false)
     }
 
