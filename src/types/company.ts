@@ -29,6 +29,8 @@ export interface Company {
   tags: string[]
   /** companies.updated_at（一覧カードの鮮度表示用） */
   dataUpdatedAt: string
+  /** 企業WebサイトURL（任意: Organization JSON-LD等で使用） */
+  website?: string
 }
 
 /** Recharts RadarChart 用のデータ形式 */

@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useCompanyData } from '../hooks/useCompanyData'
 import { usePersonalWeights } from '../hooks/usePersonalWeights'
@@ -8,8 +9,25 @@ import RadarChartComponent from '../components/charts/RadarChartComponent'
 import ComparisonBarChart from '../components/charts/ComparisonBarChart'
 import PersonalWeightPanel from '../components/filter/PersonalWeightPanel'
 import CompanyFilterBar from '../components/filter/CompanyFilterBar'
+import JsonLd from '../components/seo/JsonLd'
+import { AdUnit } from '../components/ads/AdUnit'
+import {
+  generateCanonicalUrl,
+  generatePageTitle,
+  generatePageDescription,
+  generateOgpMeta,
+  generateWebSiteSchema,
+} from '../utils/seo'
+
+const PAGE_TITLE = generatePageTitle(['エンジニア幸福度マップ', 'エンジニアが輝ける会社を探そう'])
+const PAGE_DESCRIPTION = generatePageDescription(
+  '技術スタック・リモート率・残業時間・定着率などを独自スコアで可視化。エンジニア転職で本当に良い会社を見つけよう。'
+)
+const CANONICAL_URL = generateCanonicalUrl('/')
+const OGP = generateOgpMeta({ title: PAGE_TITLE, description: PAGE_DESCRIPTION, url: CANONICAL_URL })
 
 export default function Home() {
+  const navigate = useNavigate()
   const { companies, selectedId, setSelectedId, selectedCompany, isLoading, error } = useCompanyData()
   const { weights, updateWeight, resetWeights, isPersonalized, sortByPersonal } = usePersonalWeights()
   const {
@@ -27,15 +45,30 @@ export default function Home() {
   const displayList    = isPersonalized ? sortByPersonal(filtered)       : filtered
   const rankedList     = isPersonalized ? sortByPersonal(filteredRanked) : filteredRanked
 
+  // TOP3ハイライト用: 幸福度スコア上位3社のIDセット
+  const top3Ids = new Set(
+    [...companies].sort((a, b) => b.happinessScore - a.happinessScore).slice(0, 3).map((c) => c.id)
+  )
+
   return (
     <>
       <Helmet>
-        <title>エンジニア幸福度マップ | エンジニアが輝ける会社を探そう</title>
-        <meta
-          name="description"
-          content="技術スタック・リモート率・残業時間・定着率などを独自スコアで可視化。エンジニア転職で本当に良い会社を見つけよう。"
-        />
+        <title>{PAGE_TITLE}</title>
+        <meta name="description" content={PAGE_DESCRIPTION} />
+        <link rel="canonical" href={CANONICAL_URL} />
+        {/* OGP */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={OGP.title} />
+        <meta property="og:description" content={OGP.description} />
+        <meta property="og:url" content={OGP.url} />
+        <meta property="og:image" content={OGP.image} />
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={OGP.title} />
+        <meta name="twitter:description" content={OGP.description} />
+        <meta name="twitter:image" content={OGP.image} />
       </Helmet>
+      <JsonLd schema={generateWebSiteSchema()} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Hero */}
@@ -107,25 +140,36 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {displayList.map((company) => (
-                    <CompanyCard
-                      key={company.id}
-                      company={company}
-                      isSelected={selectedId === company.id}
-                      onClick={() => setSelectedId(company.id)}
-                      personalScore={
-                        isPersonalized
-                          ? calculatePersonalScore(company.scores, weights)
-                          : undefined
-                      }
-                    />
+                  {displayList.map((company, index) => (
+                    <div key={company.id} className="contents">
+                      <div
+                        className={top3Ids.has(company.id) ? 'ring-2 ring-green-400 rounded-2xl' : ''}
+                      >
+                        <CompanyCard
+                          company={company}
+                          isSelected={selectedId === company.id}
+                          onClick={() => setSelectedId(company.id)}
+                          personalScore={
+                            isPersonalized
+                              ? calculatePersonalScore(company.scores, weights)
+                              : undefined
+                          }
+                        />
+                      </div>
+                      {/* 5件ごとにインフィード広告を挿入（2列グリッドで span-2） */}
+                      {(index + 1) % 5 === 0 && (
+                        <div className="col-span-1 sm:col-span-2">
+                          <AdUnit adSlot="XXXXXXXXXX" adFormat="fluid" adLayout="in-feed" minHeight={120} />
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Right: Charts panel */}
-            <div className="space-y-6 sticky top-20 self-start">
+            {/* Right: Charts panel（モバイルでは縦積み、lg以上でsticky） */}
+            <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
               {selectedCompany && (
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
                   <h2 className="text-lg font-semibold text-gray-800 mb-1">
@@ -142,7 +186,10 @@ export default function Home() {
                 <h2 className="text-lg font-semibold text-gray-800 mb-1">
                   {isPersonalized ? 'マッチ度ランキング' : '幸福度ランキング'}
                 </h2>
-                <ComparisonBarChart companies={rankedList} />
+                <ComparisonBarChart
+                  companies={rankedList}
+                  onBarClick={(id) => navigate(`/company/${id}`)}
+                />
               </div>
             </div>
           </div>

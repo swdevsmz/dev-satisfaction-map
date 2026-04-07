@@ -12,10 +12,12 @@ import { getScoreHex } from '../../utils/scoring'
 
 interface ComparisonBarChartProps {
   companies: Company[]
+  onBarClick?: (companyId: string) => void
 }
 
-export default function ComparisonBarChart({ companies }: ComparisonBarChartProps) {
+export default function ComparisonBarChart({ companies, onBarClick }: ComparisonBarChartProps) {
   const data = companies.map((c) => ({
+    id: c.id,
     name: c.name,
     happinessScore: c.happinessScore,
     fill: getScoreHex(c.happinessScore),
@@ -48,7 +50,13 @@ export default function ComparisonBarChart({ companies }: ComparisonBarChartProp
           }}
           cursor={{ fill: '#f3f4f6' }}
         />
-        <Bar dataKey="happinessScore" radius={[0, 6, 6, 0]} maxBarSize={28}>
+        <Bar
+          dataKey="happinessScore"
+          radius={[0, 6, 6, 0]}
+          maxBarSize={28}
+          onClick={onBarClick ? (entry) => onBarClick((entry as { id: string }).id) : undefined}
+          style={onBarClick ? { cursor: 'pointer' } : undefined}
+        >
           {data.map((entry, index) => (
             <Cell key={index} fill={entry.fill} />
           ))}

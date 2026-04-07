@@ -5,10 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="index, follow" />
     <meta name="description" content="求人データから読み解く、エンジニアが幸せに働ける会社ランキング。技術スタック・リモート率・残業時間・定着率などを独自スコアで可視化。" />
+
+    <!-- OGP (Open Graph Protocol) -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="エンジニア幸福度マップ" />
     <meta property="og:description" content="求人データから読み解く、エンジニアが幸せに働ける会社ランキング" />
+    <meta property="og:url" content="https://engineer-happiness-map.com" />
+    <meta property="og:image" content="https://engineer-happiness-map.com/og-default.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="エンジニア幸福度マップ" />
+    <meta name="twitter:description" content="求人データから読み解く、エンジニアが幸せに働ける会社ランキング" />
+    <meta name="twitter:image" content="https://engineer-happiness-map.com/og-default.svg" />
+
+    <!-- Google Analytics 4 -->
+    <!-- GA4 measurement ID is configured via VITE_GA4_ID environment variable -->
+    <!-- Note: Vite replaces %VITE_GA4_ID% at build time. Set VITE_GA4_ID in .env file. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=%VITE_GA4_ID%"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '%VITE_GA4_ID%');
+    </script>
+
+    <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3444579012936819" crossorigin="anonymous"></script>
+
+    <!-- preconnect: サードパーティドメインへの接続を事前確立 -->
+    <link rel="preconnect" href="https://www.googletagmanager.com" />
+    <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+    <link rel="preconnect" href="https://www.google-analytics.com" />
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>エンジニア幸福度マップ</title>
   </head>

@@ -1,6 +1,14 @@
+import { useEffect } from 'react'
 import { useParams, Navigate, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useCompanyById } from '../hooks/useCompanyById'
+import { useCompanyData } from '../hooks/useCompanyData'
+import { useAnalytics } from '../hooks/useAnalytics'
+import { ShareButtons } from '../components/share/ShareButtons'
+import { CopyUrlButton } from '../components/share/CopyUrlButton'
+import { Breadcrumb } from '../components/navigation/Breadcrumb'
+import { AdUnit } from '../components/ads/AdUnit'
+import { RelatedCompanies } from '../components/company/RelatedCompanies'
 import ScoreBadge from '../components/company/ScoreBadge'
 import SourceBadge from '../components/company/SourceBadge'
 import ReliabilityIndicator from '../components/company/ReliabilityIndicator'
@@ -8,6 +16,14 @@ import RadarChartComponent from '../components/charts/RadarChartComponent'
 import { getScoreColor, normalizeScores } from '../utils/scoring'
 import { METRIC_SOURCE_MAP, type SourceName } from '../constants/sourceMetricMap'
 import type { MetricKey } from '../constants/sourceMetricMap'
+import JsonLd from '../components/seo/JsonLd'
+import {
+  generateCanonicalUrl,
+  generatePageTitle,
+  generatePageDescription,
+  generateOgpMeta,
+  generateOrganizationSchema,
+} from '../utils/seo'
 
 interface MetricRowProps {
   label: string
@@ -52,12 +68,40 @@ function MetricRow({ label, metricKey, value, unit, inverted = false, normalized
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>()
   const { company, isLoading, error } = useCompanyById(id)
+  const { companies } = useCompanyData()
+  const { trackEvent } = useAnalytics()
+
+  // 企業詳細閲覧イベントをマウント時に送信
+  useEffect(() => {
+    if (company) {
+      trackEvent({ name: 'company_view', company_name: company.name, happiness_score: company.happinessScore })
+    }
+  }, [company?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) {
+    // スケルトンUI: CLSを抑制するためスピナーではなくレイアウト固定のプレースホルダーを使用
     return (
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-center items-center py-24">
-          <div className="animate-spin rounded-full h-10 w-10 border-4 border-green-500 border-t-transparent" />
+        <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-6" />
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-6">
+          <div className="flex flex-col sm:flex-row gap-6">
+            <div className="flex-1 space-y-3">
+              <div className="h-8 w-64 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-48 bg-gray-200 rounded animate-pulse" />
+              <div className="h-16 w-full bg-gray-200 rounded animate-pulse" />
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <div className="h-20 w-20 bg-gray-200 rounded-full animate-pulse" />
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 h-96 animate-pulse" />
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 animate-pulse space-y-4">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <div key={i} className="h-10 bg-gray-200 rounded" />
+            ))}
+          </div>
         </div>
       </main>
     )
@@ -88,23 +132,43 @@ export default function CompanyDetail() {
     red: 'text-red-700',
   }[getScoreColor(company.happinessScore)]
 
+  const pageTitle = generatePageTitle([`${company.name} の幸福度スコア`, 'エンジニア幸福度マップ'])
+  const pageDescription = generatePageDescription(
+    `${company.name}のエンジニア幸福度スコアは${company.happinessScore}点。技術スタック・リモート率・残業時間・定着率などを詳細分析。`
+  )
+  const canonicalUrl = generateCanonicalUrl(`/company/${company.id}`)
+  const ogp = generateOgpMeta({ title: pageTitle, description: pageDescription, url: canonicalUrl })
+  const orgSchema = generateOrganizationSchema({ name: company.name, website: company.website })
+
   return (
     <>
       <Helmet>
-        <title>{company.name} の幸福度スコア | エンジニア幸福度マップ</title>
-        <meta
-          name="description"
-          content={`${company.name}のエンジニア幸福度スコアは${company.happinessScore}点。技術スタック・リモート率・残業時間・定着率などを詳細分析。`}
-        />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <link rel="canonical" href={canonicalUrl} />
+        {/* OGP */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={ogp.title} />
+        <meta property="og:description" content={ogp.description} />
+        <meta property="og:url" content={ogp.url} />
+        <meta property="og:image" content={ogp.image} />
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={ogp.title} />
+        <meta name="twitter:description" content={ogp.description} />
+        <meta name="twitter:image" content={ogp.image} />
       </Helmet>
+      <JsonLd schema={orgSchema} />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Link
-          to="/"
-          className="inline-block text-sm text-green-700 hover:underline mb-6"
-        >
-          ← 一覧に戻る
-        </Link>
+        {/* パンくずリスト */}
+        <Breadcrumb
+          items={[
+            { label: 'ホーム', href: '/' },
+            { label: company.name },
+          ]}
+          className="mb-4"
+        />
 
         {/* Hero */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-6">
@@ -127,6 +191,16 @@ export default function CompanyDetail() {
                 {tag}
               </span>
             ))}
+          </div>
+
+          {/* シェアボタン */}
+          <div className="flex flex-wrap items-center gap-2 mt-5 pt-5 border-t border-gray-100">
+            <span className="text-xs text-gray-400 mr-1">シェア：</span>
+            <ShareButtons
+              url={canonicalUrl}
+              text={`${company.name}のエンジニア幸福度スコアは${company.happinessScore}点！`}
+            />
+            <CopyUrlButton url={canonicalUrl} />
           </div>
 
           {/* 信頼度インジケーター */}
@@ -208,6 +282,24 @@ export default function CompanyDetail() {
               acquiredSources={acquiredSources}
             />
           </div>
+        </div>
+
+        {/* 広告ユニット（スコア詳細後） */}
+        <div className="mt-6">
+          <AdUnit adSlot="YYYYYYYYYY" minHeight={120} />
+        </div>
+
+        {/* 関連企業 */}
+        <RelatedCompanies currentCompany={company} allCompanies={companies} />
+
+        {/* フィルターバーへの導線 */}
+        <div className="mt-8 p-4 bg-gray-50 rounded-xl text-sm text-gray-600">
+          <p>
+            <Link to="/#filters" className="text-green-700 hover:underline font-medium">
+              他の条件で企業を探す →
+            </Link>
+            {'　'}リモート率・残業時間・スコアでフィルタリングできます。
+          </p>
         </div>
       </main>
     </>
