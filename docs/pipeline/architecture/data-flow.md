@@ -6,19 +6,43 @@
 
 ## 全体フロー
 
-```
-外部サービス                  pipeline/run.ts              Supabase
-─────────────────────────────────────────────────────────────────
-connpass ──┐
-openwork ──┤  (並列)  →  ScrapedDocument[]  →  raw_documents テーブル
-github   ──┤                    ↓
-ir       ──┘            combinedContent
-                               ↓
-                          Ollama API
-                               ↓
-                        ExtractedScores
-                               ↓
-                        companies テーブル（upsert）
+```mermaid
+flowchart TD
+  subgraph S[外部サービス]
+    C[connpass]
+    O[openwork]
+    G[github]
+    I[ir]
+  end
+
+  subgraph P[pipeline/run.ts]
+    SC[Step 1: スクレイピング 並列実行]
+    DOC[ScrapedDocument 配列]
+    COMB[Step 2: contentを連結<br/>combinedContent]
+    LLM[Ollama APIで抽出]
+    SCORE[ExtractedScores]
+    DBW[Step 3: DB更新]
+  end
+
+  subgraph D[Supabase]
+    SCR[(company_scrapes)]
+    SCS[(company_scores)]
+    CMP[(companies)]
+  end
+
+  C --> SC
+  O --> SC
+  G --> SC
+  I --> SC
+
+  SC --> DOC
+  DOC -->|dry-run以外で保存| SCR
+  DOC --> COMB
+  COMB --> LLM
+  LLM --> SCORE
+  SCORE --> DBW
+  DBW -->|スコア指標をUPSERT| SCS
+  DBW -->|description/tagsをUPDATE| CMP
 ```
 
 ---
@@ -138,12 +162,12 @@ URL: https://about.mercari.com/ir/
 
 ---
 
-## Step 2 — raw_documents テーブルへ保存
+## Step 2 — company_scrapes テーブルへ保存
 
-スクレイピング成功後、`ScrapedDocument` をそのまま `raw_documents` テーブルに INSERT します。
+スクレイピング成功後、`ScrapedDocument` をそのまま `company_scrapes` テーブルに INSERT します。
 
 ```sql
-CREATE TABLE public.raw_documents (
+CREATE TABLE public.company_scrapes (
   id          BIGSERIAL PRIMARY KEY,
   company_id  TEXT NOT NULL REFERENCES public.companies(id),
   source      TEXT NOT NULL CHECK (source IN ('connpass','openwork','ir','github')),
@@ -225,11 +249,26 @@ Ollama の生出力に対してバリデーションを実施します。
 
 ---
 
-## Step 5 — companies テーブルへ upsert
+## Step 5 — company_scores UPSERT + companies UPDATE
 
-`ExtractedScores` の **null でないフィールドのみ** を UPDATE します（既存値を上書きしない設計）。
+`ExtractedScores` は用途に応じて2テーブルに分けて反映します。
+
+- スコア指標: `company_scores` に `upsert (onConflict: company_id)`
+- 補足情報（description/tags）: `companies` に `update`
 
 ```sql
+CREATE TABLE public.company_scores (
+  company_id               TEXT PRIMARY KEY REFERENCES public.companies(id),
+  tech_stack_modernity     SMALLINT NOT NULL CHECK (tech_stack_modernity BETWEEN 1 AND 10),
+  remote_rate              SMALLINT NOT NULL CHECK (remote_rate BETWEEN 0 AND 100),
+  estimated_overtime_hours SMALLINT NOT NULL CHECK (estimated_overtime_hours >= 0),
+  turnover_rate            SMALLINT NOT NULL CHECK (turnover_rate BETWEEN 0 AND 100),
+  retention_rate           SMALLINT NOT NULL CHECK (retention_rate BETWEEN 0 AND 100),
+  dev_environment          SMALLINT NOT NULL CHECK (dev_environment BETWEEN 1 AND 10),
+  skill_up_support         SMALLINT NOT NULL CHECK (skill_up_support BETWEEN 1 AND 10),
+  scored_at                TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE public.companies (
   id                       TEXT PRIMARY KEY,        -- 例: "mercari-jp"
   name                     TEXT NOT NULL,
@@ -239,23 +278,14 @@ CREATE TABLE public.companies (
   location                 TEXT NOT NULL DEFAULT '',
   tags                     TEXT[] NOT NULL DEFAULT '{}',
 
-  -- ↓ パイプラインが更新するスコアフィールド
-  tech_stack_modernity     SMALLINT NOT NULL CHECK (tech_stack_modernity BETWEEN 1 AND 10),
-  remote_rate              SMALLINT NOT NULL CHECK (remote_rate BETWEEN 0 AND 100),
-  estimated_overtime_hours SMALLINT NOT NULL CHECK (estimated_overtime_hours >= 0),
-  turnover_rate            SMALLINT NOT NULL CHECK (turnover_rate BETWEEN 0 AND 100),
-  retention_rate           SMALLINT NOT NULL CHECK (retention_rate BETWEEN 0 AND 100),
-  dev_environment          SMALLINT NOT NULL CHECK (dev_environment BETWEEN 1 AND 10),
-  skill_up_support         SMALLINT NOT NULL CHECK (skill_up_support BETWEEN 1 AND 10),
-
   created_at               TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at               TIMESTAMPTZ NOT NULL DEFAULT now()   -- トリガーで自動更新
 );
 ```
 
-`ExtractedScores` → `companies` のマッピング:
+`ExtractedScores` → `company_scores` のマッピング:
 
-| ExtractedScores | companies カラム |
+| ExtractedScores | company_scores カラム |
 |---|---|
 | `tech_stack_modernity` | `tech_stack_modernity` |
 | `remote_rate` | `remote_rate` |
@@ -264,6 +294,11 @@ CREATE TABLE public.companies (
 | `retention_rate` | `retention_rate` |
 | `dev_environment` | `dev_environment` |
 | `skill_up_support` | `skill_up_support` |
+
+`ExtractedScores` → `companies` のマッピング:
+
+| ExtractedScores | companies カラム |
+|---|---|
 | `description` | `description` |
 | `tags` | `tags` |
 
@@ -274,9 +309,9 @@ CREATE TABLE public.companies (
 | 処理 | 通常実行 | `--dry-run` |
 |---|---|---|
 | スクレイピング | 実行 | 実行 |
-| `raw_documents` INSERT | 実行 | **スキップ** |
+| `company_scrapes` INSERT | 実行 | **スキップ** |
 | Ollama スコア抽出 | 実行 | 実行 |
-| `companies` UPDATE | 実行 | **スキップ** |
+| `company_scores` UPSERT / `companies` UPDATE | 実行 | **スキップ** |
 | エラー時の挙動 | `throw` → CLI が exit 1 | エラーログのみ |
 
 ---

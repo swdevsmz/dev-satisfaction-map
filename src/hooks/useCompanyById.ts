@@ -15,7 +15,7 @@ export function useCompanyById(id: string | undefined) {
     async function fetch() {
       setIsLoading(true); setError(null); setCompany(null)
 
-      const [{ data: row, error: ce }, { data: scoreRow, error: se }, { data: docs }] = await Promise.all([
+      const [{ data: row, error: ce }, { data: scoreRow }, { data: docs }] = await Promise.all([
         supabase.from('companies').select('*').eq('id', companyId).single(),
         supabase.from('company_scores').select('*').eq('company_id', companyId).single().then(result => {
           // company_scores は 1:1 なので .single() だが、存在しない場合 404 が返る
