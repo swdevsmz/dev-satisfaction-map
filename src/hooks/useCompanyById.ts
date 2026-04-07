@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import type { CompanyWithSources, DataSource } from '../types/company'
 import { supabase, rowToCompany, type CompanyScrapeRow, type CompanyScoreRow } from '../lib/supabase'
 
+// 詳細画面用の単一企業データ取得フック。
+// 基本情報・スコア・取得済みソースをまとめて読み込み、表示に必要な形へ整える。
 export function useCompanyById(id: string | undefined) {
   const [company, setCompany] = useState<CompanyWithSources | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -15,6 +17,7 @@ export function useCompanyById(id: string | undefined) {
     async function fetch() {
       setIsLoading(true); setError(null); setCompany(null)
 
+      // 画面描画までの待ち時間を減らすため、必要な3系統を並列で取得する。
       const [{ data: row, error: ce }, { data: scoreRow }, { data: docs }] = await Promise.all([
         supabase.from('companies').select('*').eq('id', companyId).single(),
         supabase.from('company_scores').select('*').eq('company_id', companyId).single().then(result => {
@@ -36,6 +39,7 @@ export function useCompanyById(id: string | undefined) {
         return
       }
 
+      // 詳細画面では URL と取得日時も見せたいので、ソース一覧を表示用の型に変換する。
       const dataSources: DataSource[] = ((docs ?? []) as Pick<CompanyScrapeRow, 'source' | 'url' | 'scraped_at'>[]).map((d) => ({
         source: d.source as DataSource['source'],
         url: d.url,

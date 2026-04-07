@@ -17,6 +17,7 @@ interface CompanyFilterBarProps {
   totalCount: number
 }
 
+// 一覧画面の絞り込み条件を一箇所にまとめたバー。
 export default function CompanyFilterBar({
   keyword,
   onKeywordChange,
@@ -35,7 +36,7 @@ export default function CompanyFilterBar({
 }: CompanyFilterBarProps) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-4">
-      {/* 上段: 検索入力 + 件数 + リセット */}
+      {/* 上段は自由入力と全体状態の確認用。 */}
       <div className="flex items-center gap-2 mb-3">
         <div className="relative flex-1">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
@@ -74,7 +75,7 @@ export default function CompanyFilterBar({
         )}
       </div>
 
-      {/* 中段: スコア + リモート率クイックボタン */}
+      {/* 中段はよく使う閾値をワンタップで切り替える。 */}
       <div className="flex flex-wrap gap-x-4 gap-y-2 mb-2">
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-gray-500">スコア:</span>
@@ -114,7 +115,7 @@ export default function CompanyFilterBar({
         </div>
       </div>
 
-      {/* 下段: タグバッジ */}
+      {/* 下段はタグのAND条件絞り込み。 */}
       {availableTags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {availableTags.map((tag) => {

@@ -30,6 +30,22 @@ ETL パイプライン（スクレイピング → Ollama 抽出 → DB 登録�
 - **[scrapers.md](./pipeline/spec/scrapers.md)** — 各スクレイパー（connpass/openwork/github/ir）の詳細実装仕様、アルゴリズム、データ抽出ロジック
 - **[ollama.md](./pipeline/spec/ollama.md)** — Ollama API リクエスト・プロンプト設計、JSON パース、バリデーション仕様、テストケース
 
+### 🖥️ [frontend/](./frontend/)
+
+React 画面側の逆引き仕様書。
+
+#### 📐 [architecture/](./frontend/architecture/)
+
+画面構成・画面遷移・レイアウトの全体像。
+
+- **[screen-map.md](./frontend/architecture/screen-map.md)** — ルーティング、共通レイアウト、主要画面間の遷移を Mermaid で整理
+
+#### 📋 [spec/](./frontend/spec/)
+
+画面ごとの表示内容・データ取得・ユーザー操作・状態遷移の詳細仕様。
+
+- **[screens.md](./frontend/spec/screens.md)** — Home / CompanyDetail / PrivacyPolicy の逆引き仕様、利用フック、主要コンポーネント、表示ルール
+
 ---
 
 ## 🚀 クイックスタート
@@ -39,6 +55,7 @@ ETL パイプライン（スクレイピング → Ollama 抽出 → DB 登録�
 1. **全体像を理解**: [pipeline/architecture/data-flow.md](./pipeline/architecture/data-flow.md) を読む
 2. **パイプライン実行**: [pipeline/spec/requirements.md](./pipeline/spec/requirements.md) の「3. CLI インターフェース」を参照
 3. **トラブルシューティング**: 各ファイルの「エラーハンドリング」セクション
+4. **画面仕様を理解**: [frontend/architecture/screen-map.md](./frontend/architecture/screen-map.md) と [frontend/spec/screens.md](./frontend/spec/screens.md) を読む
 
 ### 実装者向け
 
@@ -60,6 +77,8 @@ ETL パイプライン（スクレイピング → Ollama 抽出 → DB 登録�
 | Ollama プロンプト設計 | [ollama.md#3-プロンプトテンプレート](./pipeline/spec/ollama.md#3-プロンプトテンプレート) |
 | バリデーションロジック | [ollama.md#5-バリデーション仕様](./pipeline/spec/ollama.md#5-バリデーション仕様) |
 | エラーハンドリング | [requirements.md#4-エラーハンドリング](./pipeline/spec/requirements.md#4-エラーハンドリング) |
+| React 画面構成 | [screen-map.md](./frontend/architecture/screen-map.md) |
+| React 画面仕様 | [screens.md](./frontend/spec/screens.md) |
 
 ---
 
@@ -71,4 +90,5 @@ ETL パイプライン（スクレイピング → Ollama 抽出 → DB 登録�
   - 全体設計（architecture）→ 詳細仕様（spec）の順で読むことを推奨
   - 各ファイルは独立して読むことも可能
 - **更新**: コード変更と同時にドキュメント更新（要件）
+
 

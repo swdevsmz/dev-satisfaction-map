@@ -14,7 +14,9 @@ interface RadarChartComponentProps {
   height?: number
 }
 
+// 7指標のバランスを俯瞰で見せるレーダーチャート。
 export default function RadarChartComponent({ company, height = 300 }: RadarChartComponentProps) {
+  // 表示用の項目名と値へ変換してから描画する。
   const data = toRadarData(company.scores)
 
   return (

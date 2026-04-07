@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 
+// URLコピーのような一時通知つき操作を扱うためのフック。
+// アンマウント後に state 更新しないようタイマーも管理する。
 export function useClipboard(resetDelay = 2000) {
   const [isCopied, setIsCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -19,6 +21,7 @@ export function useClipboard(resetDelay = 2000) {
       if (!mountedRef.current) return;
       setIsCopied(true);
       if (timerRef.current) clearTimeout(timerRef.current);
+      // 一定時間後にコピー済み表示を自動で戻す。
       timerRef.current = setTimeout(() => {
         if (mountedRef.current) setIsCopied(false);
       }, resetDelay);

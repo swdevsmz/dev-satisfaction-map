@@ -10,6 +10,8 @@ type AnalyticsEvent =
   | { name: 'share'; platform: 'twitter' | 'facebook' }
   | { name: 'copy_url' };
 
+// Analytics 呼び出しを画面側から隠蔽する薄いラッパーフック。
+// DNT が有効な環境では何も送らない。
 export function useAnalytics() {
   const isDnt = navigator.doNotTrack === '1';
 

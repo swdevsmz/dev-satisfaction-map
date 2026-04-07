@@ -35,6 +35,8 @@ interface MetricRowProps {
   acquiredSources: Set<string>
 }
 
+// スコア1項目分の表示行。
+// 値だけでなく、出典の有無と良し悪しの目安も同時に見せる。
 function MetricRow({ label, metricKey, value, unit, inverted = false, normalizedValue, acquiredSources }: MetricRowProps) {
   const barColor = normalizedValue >= 70 ? 'bg-green-500' : normalizedValue >= 40 ? 'bg-yellow-500' : 'bg-red-500'
   const sourceKey = METRIC_SOURCE_MAP[metricKey]
@@ -65,13 +67,15 @@ function MetricRow({ label, metricKey, value, unit, inverted = false, normalized
   )
 }
 
+// 企業ごとのスコア詳細を確認する画面。
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>()
   const { company, isLoading, error } = useCompanyById(id)
   const { companies } = useCompanyData()
   const { trackEvent } = useAnalytics()
 
-  // 企業詳細閲覧イベントをマウント時に送信
+  // 企業データ取得後に閲覧イベントを送る。
+  // company が切り替わったタイミングだけ記録したいので id を依存配列に使う。
   useEffect(() => {
     if (company) {
       trackEvent({ name: 'company_view', company_name: company.name, happiness_score: company.happinessScore })
@@ -161,7 +165,7 @@ export default function CompanyDetail() {
       <JsonLd schema={orgSchema} />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* パンくずリスト */}
+        {/* 一覧から来た文脈を失わないよう、現在地を常に表示する。 */}
         <Breadcrumb
           items={[
             { label: 'ホーム', href: '/' },
@@ -170,7 +174,7 @@ export default function CompanyDetail() {
           className="mb-4"
         />
 
-        {/* Hero */}
+        {/* 企業の基本情報と幸福度スコアをまとめて見せるヘッダー領域。 */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
             <div className="flex-1">
@@ -193,7 +197,7 @@ export default function CompanyDetail() {
             ))}
           </div>
 
-          {/* シェアボタン */}
+          {/* SNS共有とURLコピーの導線。 */}
           <div className="flex flex-wrap items-center gap-2 mt-5 pt-5 border-t border-gray-100">
             <span className="text-xs text-gray-400 mr-1">シェア：</span>
             <ShareButtons
@@ -203,16 +207,16 @@ export default function CompanyDetail() {
             <CopyUrlButton url={canonicalUrl} />
           </div>
 
-          {/* 信頼度インジケーター */}
+          {/* ソース数と更新時刻から、データの信頼感を補足する。 */}
           <ReliabilityIndicator
             dataSources={company.dataSources}
             dataUpdatedAt={company.dataUpdatedAt}
           />
         </div>
 
-        {/* Score breakdown */}
+        {/* スコアの全体像と各指標の内訳を上下でなく左右に並べて把握しやすくする。 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Radar chart */}
+          {/* 7指標のバランスを俯瞰するレーダーチャート。 */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">スコアバランス</h2>
             <div className="h-80">
@@ -220,7 +224,7 @@ export default function CompanyDetail() {
             </div>
           </div>
 
-          {/* Metric rows */}
+          {/* 個別指標の数値と出典を確認する一覧。 */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-2">各指標の詳細</h2>
             <MetricRow
@@ -284,15 +288,15 @@ export default function CompanyDetail() {
           </div>
         </div>
 
-        {/* 広告ユニット（スコア詳細後） */}
+        {/* 読了の区切りに広告を挿入する。 */}
         <div className="mt-6">
-          <AdUnit adSlot="YYYYYYYYYY" minHeight={120} />
+          <AdUnit adSlot="1171228042" minHeight={120} />
         </div>
 
-        {/* 関連企業 */}
+        {/* 幸福度が近い企業へ横移動できる導線。 */}
         <RelatedCompanies currentCompany={company} allCompanies={companies} />
 
-        {/* フィルターバーへの導線 */}
+        {/* 一覧画面で再検索したいユーザー向けの戻り導線。 */}
         <div className="mt-8 p-4 bg-gray-50 rounded-xl text-sm text-gray-600">
           <p>
             <Link to="/#filters" className="text-green-700 hover:underline font-medium">

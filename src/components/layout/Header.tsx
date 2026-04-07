@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 
+// 全画面共通のヘッダー。
+// ロゴをホーム導線として兼用するシンプルな構成にしている。
 export default function Header() {
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">

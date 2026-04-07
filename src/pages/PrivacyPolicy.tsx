@@ -8,6 +8,7 @@ const PAGE_DESCRIPTION = generatePageDescription(
 )
 const CANONICAL_URL = generateCanonicalUrl('/privacy-policy')
 
+// 法務・広告・解析まわりの説明をまとめた静的ページ。
 export default function PrivacyPolicy() {
   return (
     <>

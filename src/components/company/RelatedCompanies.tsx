@@ -7,10 +7,12 @@ interface RelatedCompaniesProps {
   maxCount?: number;
 }
 
+// 幸福度スコアが近い企業を並べる補助導線。
 export function RelatedCompanies({ currentCompany, allCompanies, maxCount = 4 }: RelatedCompaniesProps) {
   const related = allCompanies
     .filter((c) => c.id !== currentCompany.id)
     .sort((a, b) =>
+      // 単純な近傍表示にして、詳細画面内の回遊先を作る。
       Math.abs(a.happinessScore - currentCompany.happinessScore) -
       Math.abs(b.happinessScore - currentCompany.happinessScore)
     )

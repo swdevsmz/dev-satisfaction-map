@@ -26,6 +26,7 @@ const PAGE_DESCRIPTION = generatePageDescription(
 const CANONICAL_URL = generateCanonicalUrl('/')
 const OGP = generateOgpMeta({ title: PAGE_TITLE, description: PAGE_DESCRIPTION, url: CANONICAL_URL })
 
+// 一覧・比較・絞り込みをまとめて提供するトップ画面。
 export default function Home() {
   const navigate = useNavigate()
   const { companies, selectedId, setSelectedId, selectedCompany, isLoading, error } = useCompanyData()
@@ -41,6 +42,7 @@ export default function Home() {
     reset: resetFilter,
   } = useCompanyFilter(companies)
 
+  // 一覧表示用とランキング表示用で並び順が異なるため、それぞれ別に作る。
   const filteredRanked = [...filtered].sort((a, b) => b.happinessScore - a.happinessScore)
   const displayList    = isPersonalized ? sortByPersonal(filtered)       : filtered
   const rankedList     = isPersonalized ? sortByPersonal(filteredRanked) : filteredRanked
@@ -71,7 +73,7 @@ export default function Home() {
       <JsonLd schema={generateWebSiteSchema()} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Hero */}
+        {/* サービスの目的を最初に伝えるヒーロー領域。 */}
         <section className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">
             エンジニア幸福度マップ
@@ -95,7 +97,7 @@ export default function Home() {
 
         {!isLoading && !error && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left: Personal filter + Company cards */}
+            {/* 左カラムは探索用UI。条件調整と企業一覧をまとめて置く。 */}
             <div className="lg:col-span-2">
               <PersonalWeightPanel
                 weights={weights}
@@ -159,7 +161,7 @@ export default function Home() {
                       {/* 5件ごとにインフィード広告を挿入（2列グリッドで span-2） */}
                       {(index + 1) % 5 === 0 && (
                         <div className="col-span-1 sm:col-span-2">
-                          <AdUnit adSlot="XXXXXXXXXX" adFormat="fluid" adLayout="in-feed" minHeight={120} />
+                          <AdUnit adSlot="1171228042" adFormat="fluid" adLayout="in-feed" minHeight={120} />
                         </div>
                       )}
                     </div>
@@ -168,7 +170,7 @@ export default function Home() {
               )}
             </div>
 
-            {/* Right: Charts panel（モバイルでは縦積み、lg以上でsticky） */}
+            {/* 右カラムは比較用UI。選択中企業の見え方を固定位置で確認できる。 */}
             <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
               {selectedCompany && (
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">

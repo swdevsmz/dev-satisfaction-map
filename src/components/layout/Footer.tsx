@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 
+// 全画面共通のフッター。
+// 法務導線とサービスの注意書きをここに集約する。
 export default function Footer() {
   return (
     <footer className="bg-white border-t border-gray-200 mt-16">

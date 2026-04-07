@@ -10,6 +10,7 @@ interface ReliabilityIndicatorProps {
   dataUpdatedAt: string
 }
 
+// データの鮮度とソース数をまとめて表示する補助UI。
 export default function ReliabilityIndicator({ dataSources, dataUpdatedAt }: ReliabilityIndicatorProps) {
   const score = calculateReliabilityScore(dataSources)
   const { label, colorClass } = getReliabilityLabel(score)
@@ -26,7 +27,7 @@ export default function ReliabilityIndicator({ dataSources, dataUpdatedAt }: Rel
         <span className="text-xs text-gray-400">更新: {formatRelativeDate(dataUpdatedAt)}</span>
       </div>
 
-      {/* 信頼度バー */}
+      {/* 数値だけでは伝わりにくいため、バーでも直感的に見せる。 */}
       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-3">
         <div
           className={`h-full rounded-full transition-all ${
@@ -36,7 +37,7 @@ export default function ReliabilityIndicator({ dataSources, dataUpdatedAt }: Rel
         />
       </div>
 
-      {/* ソース一覧 */}
+      {/* どのソースが取得済みかを一覧で確認できる。 */}
       <div className="flex flex-wrap gap-1.5">
         {ALL_SOURCES.map((source) => (
           <SourceBadge

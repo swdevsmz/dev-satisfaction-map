@@ -36,13 +36,14 @@ export const REMOTE_RATE_THRESHOLDS = [
   { label: '80%以上', value: 80 },
 ] as const
 
+// 一覧画面の絞り込み状態をまとめて管理するフック。
 export function useCompanyFilter(companies: Company[]): UseCompanyFilterReturn {
   const [keyword, setKeyword] = useState('')
   const [minScore, setMinScore] = useState(0)
   const [minRemoteRate, setMinRemoteRate] = useState(0)
   const [selectedTags, setSelectedTags] = useState<string[]>([])
 
-  // 出現頻度上位10件のタグを抽出
+  // タグが多すぎるとUIが散らかるため、頻出上位だけを候補に出す。
   const availableTags = useMemo(() => {
     const counts = new Map<string, number>()
     companies.forEach((c) =>
@@ -54,7 +55,7 @@ export function useCompanyFilter(companies: Company[]): UseCompanyFilterReturn {
       .map(([tag]) => tag)
   }, [companies])
 
-  // フィルタリング（BR-01〜BR-06）
+  // 条件はすべて AND で適用する。
   const filtered = useMemo(() => {
     return companies.filter((c) => {
       // BR-01: キーワード検索（大文字小文字区別なし、部分一致）
@@ -90,6 +91,7 @@ export function useCompanyFilter(companies: Company[]): UseCompanyFilterReturn {
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     )
 
+  // 一括リセットは、一覧を初期状態に戻すための操作。
   const reset = () => {
     setKeyword('')
     setMinScore(0)

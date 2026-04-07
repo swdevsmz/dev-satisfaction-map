@@ -19,6 +19,7 @@ interface PersonalWeightPanelProps {
   onReset: () => void
 }
 
+// ユーザーの価値観を重みとして入力するパネル。
 export default function PersonalWeightPanel({
   weights,
   isPersonalized,
@@ -47,6 +48,7 @@ export default function PersonalWeightPanel({
           const val = weights[key]
           return (
             <div key={key}>
+              {/* ラベルと現在の重み段階をセットで見せる。 */}
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-gray-600">
                   {emoji} {label}

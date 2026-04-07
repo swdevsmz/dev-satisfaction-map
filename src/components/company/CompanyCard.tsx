@@ -10,6 +10,8 @@ interface CompanyCardProps {
   personalScore?: number
 }
 
+// 一覧画面で使う企業カード。
+// カード本体クリックは選択切替、リンククリックは詳細遷移に役割を分けている。
 export default function CompanyCard({ company, isSelected, onClick, personalScore }: CompanyCardProps) {
   return (
     <div

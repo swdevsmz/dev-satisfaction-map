@@ -15,7 +15,10 @@ interface ComparisonBarChartProps {
   onBarClick?: (companyId: string) => void
 }
 
+// 一覧の比較用ランキングチャート。
+// 棒クリックを詳細遷移の入口としても使える。
 export default function ComparisonBarChart({ companies, onBarClick }: ComparisonBarChartProps) {
+  // recharts に渡す表示専用データへ変換する。
   const data = companies.map((c) => ({
     id: c.id,
     name: c.name,

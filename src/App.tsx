@@ -8,6 +8,7 @@ const Home = lazy(() => import('./pages/Home'))
 const CompanyDetail = lazy(() => import('./pages/CompanyDetail'))
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
 
+// 各ページの読込待ち中に表示する最小ローディングUI。
 function LoadingSpinner() {
   return (
     <div className="flex items-center justify-center min-h-screen">
@@ -20,9 +21,11 @@ export default function App() {
   return (
     <HelmetProvider>
       <BrowserRouter>
+        {/* Header / Footer は全画面共通で表示する。 */}
         <div className="min-h-screen flex flex-col">
           <Header />
           <div className="flex-1">
+            {/* 画面単位で分割読込し、初回ロードを軽くする。 */}
             <Suspense fallback={<LoadingSpinner />}>
               <Routes>
                 <Route path="/" element={<Home />} />
