@@ -178,7 +178,18 @@ export default function CompanyDetail() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900">{company.name}</h1>
+              {company.website ? (
+                <a
+                  href={company.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-3xl font-bold text-green-700 hover:text-green-900 hover:underline inline-block"
+                >
+                  {company.name}
+                </a>
+              ) : (
+                <h1 className="text-3xl font-bold text-gray-900">{company.name}</h1>
+              )}
               <p className="text-gray-500 mt-1 text-sm">
                 {company.industry} · {company.location} · 従業員 {company.employeeCount.toLocaleString()}名
               </p>

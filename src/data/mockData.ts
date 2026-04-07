@@ -4,7 +4,7 @@ import { calculateHappinessScore } from '../utils/scoring'
 export const mockCompanies: Company[] = [
   {
     id: 'mercari-jp',
-    name: 'メルカリ',
+    name: '株式会社メルカリ',
     description: 'Go・Kubernetesを中心としたモダンなマイクロサービスアーキテクチャ。フルリモート可で自律的な働き方を推奨。エンジニアの技術投資に積極的。',
     industry: 'ECプラットフォーム',
     employeeCount: 2000,
@@ -21,10 +21,11 @@ export const mockCompanies: Company[] = [
     happinessScore: 0,
     dataUpdatedAt: new Date().toISOString(),
     tags: ['Go', 'Kubernetes', 'React', 'リモートOK', 'フルスタック'],
+    website: 'https://www.mercari.com',
   },
   {
     id: 'smarthr',
-    name: 'SmartHR',
+    name: 'SmartHR株式会社',
     description: 'HR Techのリーディングカンパニー。Ruby on Rails + ReactのモダンなSaaS開発。定着率が高く、心理的安全性を重視したカルチャー。',
     industry: 'HR Tech / SaaS',
     employeeCount: 800,
@@ -41,10 +42,11 @@ export const mockCompanies: Company[] = [
     happinessScore: 0,
     dataUpdatedAt: new Date().toISOString(),
     tags: ['Ruby', 'React', 'TypeScript', 'リモートOK', 'SaaS'],
+    website: 'https://smarthr.jp',
   },
   {
     id: 'cyberagent',
-    name: 'サイバーエージェント',
+    name: 'サイバーエージェント株式会社',
     description: 'Abema TVやAmeba等の大規模サービスを展開。技術カンファレンスへの参加支援が充実。成長意欲の高いエンジニアが集まる環境。',
     industry: 'インターネット総合',
     employeeCount: 6000,
@@ -61,10 +63,11 @@ export const mockCompanies: Company[] = [
     happinessScore: 0,
     dataUpdatedAt: new Date().toISOString(),
     tags: ['Go', 'Kotlin', 'Swift', 'Scala', 'スキルアップ支援充実'],
+    website: 'https://www.cyberagent.co.jp',
   },
   {
     id: 'freee',
-    name: 'freee',
+    name: 'freee株式会社',
     description: 'クラウド会計・HR SaaSのパイオニア。Ruby・Javaの堅実な技術スタックにモダンなフロントエンドを組み合わせ。開発環境への投資が手厚い。',
     industry: 'FinTech / SaaS',
     employeeCount: 1500,
@@ -81,10 +84,11 @@ export const mockCompanies: Company[] = [
     happinessScore: 0,
     dataUpdatedAt: new Date().toISOString(),
     tags: ['Ruby', 'Java', 'React', 'TypeScript', 'リモート可'],
+    website: 'https://www.freee.co.jp',
   },
   {
     id: 'rakuten-tech',
-    name: '楽天テクノロジー',
+    name: '楽天グループ株式会社',
     description: '楽天グループの巨大なシステム基盤を支える。技術的負債も多いがスケールの大きな課題に取り組める。グローバルな開発環境。',
     industry: 'ECプラットフォーム / 金融',
     employeeCount: 28000,
@@ -101,6 +105,7 @@ export const mockCompanies: Company[] = [
     happinessScore: 0,
     dataUpdatedAt: new Date().toISOString(),
     tags: ['Java', 'PHP', '大規模システム', 'グローバル'],
+    website: 'https://www.rakuten.co.jp',
   },
 ]
 

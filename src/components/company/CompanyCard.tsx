@@ -23,7 +23,19 @@ export default function CompanyCard({ company, isSelected, onClick, personalScor
       }`}
     >
       <div className="flex items-start justify-between mb-3 gap-2">
-        <h3 className="font-bold text-lg text-gray-900 leading-tight">{company.name}</h3>
+        {company.website ? (
+          <a
+            href={company.website}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-bold text-lg text-green-700 hover:text-green-900 hover:underline leading-tight"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {company.name}
+          </a>
+        ) : (
+          <h3 className="font-bold text-lg text-gray-900 leading-tight">{company.name}</h3>
+        )}
         <div className="flex flex-col items-end gap-1">
           <ScoreBadge score={personalScore ?? company.happinessScore} size="sm" />
           {personalScore !== undefined && (
