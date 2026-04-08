@@ -1,0 +1,39 @@
+{
+  "name": "scoring-system",
+  "title": "エンジニア幸福度スコアリングシステム",
+  "description": "企業のエンジニア向けの幸福度スコアを計算・表示するシステム",
+  "language": "ja",
+  "status": "design",
+  "created": "2026-04-08",
+  "updated": "2026-04-08",
+  "owner": "swdev",
+  "tags": ["scoring", "algorithm", "core-feature"],
+  "phases": {
+    "requirements": {
+      "status": "completed",
+      "completed": "2026-04-08"
+    },
+    "design": {
+      "status": "completed",
+      "completed": "2026-04-08"
+    },
+    "tasks": {
+      "status": "generated",
+      "generated": "2026-04-08"
+    }
+  },
+  "approvals": {
+    "requirements": {
+      "approved": true,
+      "approvedAt": "2026-04-08"
+    },
+    "design": {
+      "approved": true,
+      "approvedAt": "2026-04-08"
+    },
+    "tasks": {
+      "generated": true,
+      "approved": false
+    }
+  }
+}

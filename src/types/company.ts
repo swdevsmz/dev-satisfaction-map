@@ -13,6 +13,12 @@ export interface CompanyScores {
   devEnvironment: number
   /** 1–10 スキルアップ支援度（高いほど良い） */
   skillUpSupport: number
+  /** 0–100 の幸福度スコア（計算済み） */
+  happinessScore: number
+  /** 0–100 の信頼度スコア（計算済み） */
+  reliabilityScore: number
+  /** スコアに対応する色分け */
+  scoreColor: 'green' | 'yellow' | 'red'
 }
 
 export interface Company {

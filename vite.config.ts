@@ -19,11 +19,6 @@ function sitemapPlugin(): Plugin {
 
 export default defineConfig({
   plugins: [react(), sitemapPlugin()],
-  test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: ['./src/test/setup.ts'],
-  },
   server: { port: 5173 },
   build: {
     rollupOptions: {

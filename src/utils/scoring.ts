@@ -77,6 +77,22 @@ export function calculatePersonalScore(s: CompanyScores, weights: UserWeights): 
   return Math.round(Math.min(100, Math.max(0, raw)) * 10) / 10
 }
 
+/**
+ * ボーナスポイント（GitHub活動度、Connpassイベント）を加算する。
+ * 合算後は100点にキャップ。
+ *
+ * @param baseScore 基本スコア（0–100）
+ * @param bonuses GitHub活動ボーナス（0–5）とConnpassボーナス（0–5）
+ * @returns 最終スコア（0–100）
+ */
+export function applyBonusPoints(
+  baseScore: number,
+  bonuses: { github: number; connpass: number }
+): number {
+  const total = baseScore + bonuses.github + bonuses.connpass
+  return Math.min(100, total)
+}
+
 /** スコアに応じたカラーカテゴリを返す */
 export function getScoreColor(score: number): 'green' | 'yellow' | 'red' {
   if (score >= 70) return 'green'
