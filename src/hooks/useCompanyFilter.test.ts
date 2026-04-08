@@ -15,19 +15,37 @@
 
 import * as fc from 'fast-check'
 import type { Company, CompanyScores } from '../types/company'
-import { calculateHappinessScore } from '../utils/scoring'
+import { calculateHappinessScore, getScoreColor } from '../utils/scoring'
 
 // ─── テスト用ヘルパー ─────────────────────────────────────────────
 
 /** fast-check Arbitrary: CompanyScores */
-const arbScores: fc.Arbitrary<CompanyScores> = fc.record({
-  techStackModernity:     fc.integer({ min: 1, max: 10 }),
-  remoteRate:             fc.integer({ min: 0, max: 100 }),
-  estimatedOvertimeHours: fc.integer({ min: 0, max: 80 }),
-  turnoverRate:           fc.integer({ min: 0, max: 100 }),
-  retentionRate:          fc.integer({ min: 0, max: 100 }),
-  devEnvironment:         fc.integer({ min: 1, max: 10 }),
-  skillUpSupport:         fc.integer({ min: 1, max: 10 }),
+const arbScores: fc.Arbitrary<CompanyScores> = fc.tuple(
+  fc.record({
+    techStackModernity:     fc.integer({ min: 1, max: 10 }),
+    remoteRate:             fc.integer({ min: 0, max: 100 }),
+    estimatedOvertimeHours: fc.integer({ min: 0, max: 80 }),
+    turnoverRate:           fc.integer({ min: 0, max: 100 }),
+    retentionRate:          fc.integer({ min: 0, max: 100 }),
+    devEnvironment:         fc.integer({ min: 1, max: 10 }),
+    skillUpSupport:         fc.integer({ min: 1, max: 10 }),
+  }),
+  fc.integer({ min: 0, max: 100 })
+).map(([baseScores, reliabilityScore]) => {
+  // Create a temporary full CompanyScores object to calculate happiness score
+  const tempScores: CompanyScores = {
+    ...baseScores,
+    happinessScore: 0,
+    scoreColor: 'red' as const,
+    reliabilityScore: 0,
+  }
+  const happinessScore = calculateHappinessScore(tempScores)
+  return {
+    ...baseScores,
+    happinessScore,
+    scoreColor: getScoreColor(happinessScore),
+    reliabilityScore,
+  }
 })
 
 const SAMPLE_TAGS = ['Go', 'React', 'TypeScript', 'Kotlin', 'Ruby', 'リモートOK', 'SaaS', 'AWS', 'Docker', 'Python']
@@ -95,17 +113,26 @@ function testExamples() {
       id: 'a', name: 'メルカリ', description: 'Go・Kubernetes', industry: 'EC',
       employeeCount: 2000, location: '東京', dataUpdatedAt: '',
       scores: { techStackModernity: 9, remoteRate: 90, estimatedOvertimeHours: 15,
-                turnoverRate: 18, retentionRate: 82, devEnvironment: 9, skillUpSupport: 8 },
+                turnoverRate: 18, retentionRate: 82, devEnvironment: 9, skillUpSupport: 8,
+                happinessScore: 0, scoreColor: 'red' as const, reliabilityScore: 0 },
       happinessScore: 0, tags: ['Go', 'React', 'リモートOK'],
     },
     {
       id: 'b', name: '楽天', description: '大規模Java', industry: 'EC',
       employeeCount: 28000, location: '東京', dataUpdatedAt: '',
       scores: { techStackModernity: 4, remoteRate: 40, estimatedOvertimeHours: 45,
-                turnoverRate: 30, retentionRate: 70, devEnvironment: 5, skillUpSupport: 5 },
+                turnoverRate: 30, retentionRate: 70, devEnvironment: 5, skillUpSupport: 5,
+                happinessScore: 0, scoreColor: 'red' as const, reliabilityScore: 0 },
       happinessScore: 0, tags: ['Java', 'PHP'],
     },
-  ].map((c) => ({ ...c, happinessScore: calculateHappinessScore(c.scores) }))
+  ].map((c) => {
+    const happinessScore = calculateHappinessScore(c.scores)
+    return {
+      ...c,
+      happinessScore,
+      scores: { ...c.scores, happinessScore, scoreColor: getScoreColor(happinessScore) },
+    }
+  })
 
   // キーワード検索
   const r1 = applyFilter(companies, 'メルカリ', 0, 0, [])

@@ -15,7 +15,7 @@ export const WEIGHTS = {
  * 各指標を 0–100 スケールに正規化する。
  * 残業時間・離職率は「少ないほど良い」ため反転する。
  */
-export function normalizeScores(s: CompanyScores): Record<keyof CompanyScores, number> {
+export function normalizeScores(s: CompanyScores): Record<keyof typeof WEIGHTS, number> {
   return {
     techStackModernity: ((s.techStackModernity - 1) / 9) * 100,
     remoteRate: s.remoteRate,

@@ -4,7 +4,6 @@
  */
 
 import {
-  normalizeScores,
   calculateHappinessScore,
   getScoreColor,
 } from '../utils/scoring'

@@ -1,5 +1,22 @@
-import type { Company } from '../types/company'
-import { calculateHappinessScore } from '../utils/scoring'
+import type { Company, CompanyScores } from '../types/company'
+import { calculateHappinessScore, getScoreColor } from '../utils/scoring'
+
+// ヘルパー関数: CompanyScoresオブジェクトを作成
+function createCompanyScores(partial: Partial<CompanyScores>): CompanyScores {
+  return {
+    techStackModernity: 1,
+    remoteRate: 0,
+    estimatedOvertimeHours: 0,
+    turnoverRate: 0,
+    retentionRate: 100,
+    devEnvironment: 1,
+    skillUpSupport: 1,
+    happinessScore: 0,
+    reliabilityScore: 0,
+    scoreColor: 'red' as const,
+    ...partial,
+  }
+}
 
 export const mockCompanies: Company[] = [
   {
@@ -9,7 +26,7 @@ export const mockCompanies: Company[] = [
     industry: 'ECプラットフォーム',
     employeeCount: 2000,
     location: '東京都港区',
-    scores: {
+    scores: createCompanyScores({
       techStackModernity: 9,
       remoteRate: 90,
       estimatedOvertimeHours: 15,
@@ -17,7 +34,7 @@ export const mockCompanies: Company[] = [
       retentionRate: 82,
       devEnvironment: 9,
       skillUpSupport: 8,
-    },
+    }),
     happinessScore: 0,
     dataUpdatedAt: new Date().toISOString(),
     tags: ['Go', 'Kubernetes', 'React', 'リモートOK', 'フルスタック'],
@@ -30,7 +47,7 @@ export const mockCompanies: Company[] = [
     industry: 'HR Tech / SaaS',
     employeeCount: 800,
     location: '東京都港区',
-    scores: {
+    scores: createCompanyScores({
       techStackModernity: 8,
       remoteRate: 95,
       estimatedOvertimeHours: 10,
@@ -38,7 +55,7 @@ export const mockCompanies: Company[] = [
       retentionRate: 92,
       devEnvironment: 8,
       skillUpSupport: 7,
-    },
+    }),
     happinessScore: 0,
     dataUpdatedAt: new Date().toISOString(),
     tags: ['Ruby', 'React', 'TypeScript', 'リモートOK', 'SaaS'],
@@ -51,7 +68,7 @@ export const mockCompanies: Company[] = [
     industry: 'インターネット総合',
     employeeCount: 6000,
     location: '東京都渋谷区',
-    scores: {
+    scores: createCompanyScores({
       techStackModernity: 7,
       remoteRate: 60,
       estimatedOvertimeHours: 30,
@@ -59,7 +76,7 @@ export const mockCompanies: Company[] = [
       retentionRate: 75,
       devEnvironment: 7,
       skillUpSupport: 9,
-    },
+    }),
     happinessScore: 0,
     dataUpdatedAt: new Date().toISOString(),
     tags: ['Go', 'Kotlin', 'Swift', 'Scala', 'スキルアップ支援充実'],
@@ -72,7 +89,7 @@ export const mockCompanies: Company[] = [
     industry: 'FinTech / SaaS',
     employeeCount: 1500,
     location: '東京都品川区',
-    scores: {
+    scores: createCompanyScores({
       techStackModernity: 7,
       remoteRate: 80,
       estimatedOvertimeHours: 20,
@@ -80,7 +97,7 @@ export const mockCompanies: Company[] = [
       retentionRate: 85,
       devEnvironment: 9,
       skillUpSupport: 7,
-    },
+    }),
     happinessScore: 0,
     dataUpdatedAt: new Date().toISOString(),
     tags: ['Ruby', 'Java', 'React', 'TypeScript', 'リモート可'],
@@ -93,7 +110,7 @@ export const mockCompanies: Company[] = [
     industry: 'ECプラットフォーム / 金融',
     employeeCount: 28000,
     location: '東京都世田谷区',
-    scores: {
+    scores: createCompanyScores({
       techStackModernity: 4,
       remoteRate: 40,
       estimatedOvertimeHours: 45,
@@ -101,7 +118,7 @@ export const mockCompanies: Company[] = [
       retentionRate: 70,
       devEnvironment: 5,
       skillUpSupport: 5,
-    },
+    }),
     happinessScore: 0,
     dataUpdatedAt: new Date().toISOString(),
     tags: ['Java', 'PHP', '大規模システム', 'グローバル'],
@@ -111,5 +128,10 @@ export const mockCompanies: Company[] = [
 
 // 定義時にスコアを算出して上書き
 mockCompanies.forEach((company) => {
-  company.happinessScore = calculateHappinessScore(company.scores)
+  const happinessScore = calculateHappinessScore(company.scores)
+  company.happinessScore = happinessScore
+  company.scores.happinessScore = happinessScore
+  company.scores.scoreColor = getScoreColor(happinessScore)
+  // デフォルト信頼度スコア（本番ではデータソースから計算）
+  company.scores.reliabilityScore = 75
 })

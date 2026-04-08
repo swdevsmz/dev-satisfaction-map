@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
-import { calculateHappinessScore } from '../utils/scoring'
-import type { Company } from '../types/company'
+import { calculateHappinessScore, getScoreColor } from '../utils/scoring'
+import type { Company, CompanyScores } from '../types/company'
 
 export interface CompanyRow {
   id: string; name: string; description: string; industry: string
@@ -47,9 +47,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 
-/** DB行(snake_case) → Company(camelCase)。happinessScore はここで計算。 */
+/** DB行(snake_case) → Company(camelCase)。happinessScore、reliabilityScore、scoreColor はここで計算。 */
 export function rowToCompany(row: CompanyRow, scoreRow: CompanyScoreRow | null): Company {
-  const scores = {
+  const baseScores = {
     techStackModernity: scoreRow?.tech_stack_modernity ?? 5,
     remoteRate: scoreRow?.remote_rate ?? 50,
     estimatedOvertimeHours: scoreRow?.estimated_overtime_hours ?? 30,
@@ -58,11 +58,29 @@ export function rowToCompany(row: CompanyRow, scoreRow: CompanyScoreRow | null):
     devEnvironment: scoreRow?.dev_environment ?? 5,
     skillUpSupport: scoreRow?.skill_up_support ?? 5,
   }
+
+  // Create a temporary full CompanyScores object to calculate happiness score
+  const tempScores: CompanyScores = {
+    ...baseScores,
+    happinessScore: 0,
+    scoreColor: 'red' as const,
+    reliabilityScore: 75, // デフォルト値（本番ではデータソースから計算）
+  }
+
+  const happinessScore = calculateHappinessScore(tempScores)
+
+  const scores = {
+    ...baseScores,
+    happinessScore,
+    scoreColor: getScoreColor(happinessScore),
+    reliabilityScore: 75, // デフォルト値（本番ではデータソースから計算）
+  }
+
   return {
     id: row.id, name: row.name, description: row.description,
     industry: row.industry, employeeCount: row.employee_count,
     location: row.location, tags: row.tags, website: row.website,
-    scores, happinessScore: calculateHappinessScore(scores),
+    scores, happinessScore,
     dataUpdatedAt: scoreRow?.scored_at ?? row.updated_at,
   }
 }

@@ -43,4 +43,8 @@ export const METRIC_SOURCE_MAP: Record<MetricKey, SourceName | null> = {
   estimatedOvertimeHours: 'openwork',
   turnoverRate:           'openwork',
   retentionRate:          'openwork',
+  // 計算済みフィールド（ソースから直接取得されない）
+  happinessScore:         null,
+  reliabilityScore:       null,
+  scoreColor:             null,
 }
