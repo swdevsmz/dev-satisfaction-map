@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import CompanyCard from './CompanyCard'
 import type { Company } from '../../types/company'
@@ -304,9 +304,12 @@ describe('CompanyCard', () => {
         }
       )
 
-      const card = container.firstChild
-      expect(card?.className).toContain('rounded-2xl')
-      expect(card?.className).toContain('p-5')
+      const card = container.firstChild as HTMLElement | null
+      expect(card).toBeTruthy()
+      if (card) {
+        expect(card.className).toContain('rounded-2xl')
+        expect(card.className).toContain('p-5')
+      }
     })
   })
 

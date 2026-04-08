@@ -246,7 +246,7 @@ describe('ReliabilityDisplay', () => {
     })
 
     it('スコア、レベル、ソース情報が整理されて表示される', () => {
-      const { container } = render(<ReliabilityDisplay dataSources={mockDataSources} />)
+      render(<ReliabilityDisplay dataSources={mockDataSources} />)
 
       // Should have score display
       expect(screen.getByTestId('reliability-score-display')).toBeInTheDocument()

@@ -1,8 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, afterEach, beforeEach } from 'vitest'
 import PersonalScoreAdjuster from './PersonalScoreAdjuster'
 import type { CompanyScores, UserWeights } from '../../types/company'
-import { loadUserWeights, resetUserWeights } from '../../utils/user-weights'
 
 // Test data
 const mockScores: CompanyScores = {
@@ -119,7 +118,7 @@ describe('PersonalScoreAdjuster', () => {
 
   describe('リアルタイム計算とスコア更新', () => {
     it('スライダー操作時にパーソナルスコアが計算・表示される', async () => {
-      const { container } = render(<PersonalScoreAdjuster scores={mockScores} />)
+      render(<PersonalScoreAdjuster scores={mockScores} />)
 
       const scoreDisplay = screen.getByTestId('personal-score-display')
 
