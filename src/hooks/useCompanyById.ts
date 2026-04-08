@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { CompanyWithSources, DataSource } from '../types/company'
 import { supabase, rowToCompany, type CompanyScrapeRow, type CompanyScoreRow } from '../lib/supabase'
+import { calculateReliabilityScore } from '../utils/reliability'
 
 // 詳細画面用の単一企業データ取得フック。
 // 基本情報・スコア・取得済みソースをまとめて読み込み、表示に必要な形へ整える。
@@ -46,7 +47,15 @@ export function useCompanyById(id: string | undefined) {
         scrapedAt: d.scraped_at,
       }))
 
-      setCompany({ ...rowToCompany(row, scoreRow as CompanyScoreRow | null), dataSources })
+      // 信頼度スコアを実データソースから計算する
+      const company = rowToCompany(row, scoreRow as CompanyScoreRow | null)
+      const reliabilityScore = calculateReliabilityScore(dataSources)
+
+      setCompany({
+        ...company,
+        scores: { ...company.scores, reliabilityScore },
+        dataSources,
+      })
       setIsLoading(false)
     }
 

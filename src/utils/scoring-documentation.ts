@@ -6,8 +6,6 @@
  * normalization pattern to ensure consistency and maintainability.
  */
 
-import type { CompanyScores, UserWeights } from '../types/company'
-
 /**
  * WEIGHTS CONFIGURATION
  *

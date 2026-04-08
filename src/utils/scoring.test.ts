@@ -304,7 +304,7 @@ describe('calculateHappinessScore - 幸福度スコア計算 (Task 1.2)', () => 
 
   it('各重みの合計が1.00であることを検証', () => {
     const weightSum = Object.values(WEIGHTS).reduce((a, b) => a + b, 0)
-    expect(weightSum).toBeCloseTo(1.0, 2)
+    expect(weightSum).toBeCloseTo(1, 2)
   })
 
   it('レガシー企業の低スコア例', () => {
@@ -413,7 +413,7 @@ describe('getScoreColor - スコア色分けロジック (Task 1.4)', () => {
     })
 
     it('70.0は緑（green）', () => {
-      expect(getScoreColor(70.0)).toBe('green')
+      expect(getScoreColor(70)).toBe('green')
     })
 
     it('39.9は赤（red）', () => {
@@ -421,7 +421,7 @@ describe('getScoreColor - スコア色分けロジック (Task 1.4)', () => {
     })
 
     it('40.0は黄（yellow）', () => {
-      expect(getScoreColor(40.0)).toBe('yellow')
+      expect(getScoreColor(40)).toBe('yellow')
     })
   })
 })
@@ -499,7 +499,7 @@ describe('calculatePersonalScore - パーソナルスコア計算 (Task 2.1)', (
     expect(personal).toBeCloseTo(87.5, 1)
   })
 
-  it('全指標を均等に重視する場合（標準スコアと同じ）', () => {
+  it('全指標を均等に重視する場合（正規化値の単純平均になる）', () => {
     const scores = createTestScores({
       techStackModernity: 8,
       remoteRate: 95,
@@ -519,8 +519,9 @@ describe('calculatePersonalScore - パーソナルスコア計算 (Task 2.1)', (
       skillUpSupport: 1,
     }
     const personal = calculatePersonalScore(scores, weights)
-    const standard = calculateHappinessScore(scores)
-    expect(personal).toBeCloseTo(standard, 1)
+    // 均等ウェイト(1,1,1,1,1,1,1)は、既定重みではなく単純平均になる
+    // 77.8,95,81.25,90,90,77.8,66.7 の平均 ≒ 82.65 → 82.6
+    expect(personal).toBeCloseTo(82.6, 1)
   })
 
   it('0–100の範囲で出力される', () => {

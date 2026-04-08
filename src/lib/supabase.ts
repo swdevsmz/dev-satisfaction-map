@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { calculateHappinessScore, getScoreColor } from '../utils/scoring'
+import { applyBonusPoints, calculateHappinessScore, getScoreColor } from '../utils/scoring'
 import type { Company, CompanyScores } from '../types/company'
 
 export interface CompanyRow {
@@ -13,6 +13,8 @@ export interface CompanyScoreRow {
   tech_stack_modernity: number; remote_rate: number
   estimated_overtime_hours: number; turnover_rate: number
   retention_rate: number; dev_environment: number; skill_up_support: number
+  github_activity_bonus?: number | null
+  connpass_bonus?: number | null
   scored_at: string
 }
 
@@ -67,7 +69,11 @@ export function rowToCompany(row: CompanyRow, scoreRow: CompanyScoreRow | null):
     reliabilityScore: 75, // デフォルト値（本番ではデータソースから計算）
   }
 
-  const happinessScore = calculateHappinessScore(tempScores)
+  const baseScore = calculateHappinessScore(tempScores)
+  const happinessScore = applyBonusPoints(baseScore, {
+    github: scoreRow?.github_activity_bonus ?? 0,
+    connpass: scoreRow?.connpass_bonus ?? 0,
+  })
 
   const scores = {
     ...baseScores,

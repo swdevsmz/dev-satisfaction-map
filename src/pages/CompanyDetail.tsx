@@ -10,12 +10,10 @@ import { Breadcrumb } from '../components/navigation/Breadcrumb'
 import { AdUnit } from '../components/ads/AdUnit'
 import { RelatedCompanies } from '../components/company/RelatedCompanies'
 import ScoreBadge from '../components/company/ScoreBadge'
-import SourceBadge from '../components/company/SourceBadge'
 import ReliabilityIndicator from '../components/company/ReliabilityIndicator'
+import ScoreDisplay from '../components/company/ScoreDisplay'
 import RadarChartComponent from '../components/charts/RadarChartComponent'
-import { getScoreColor, normalizeScores } from '../utils/scoring'
-import { METRIC_SOURCE_MAP, type SourceName } from '../constants/sourceMetricMap'
-import type { MetricKey } from '../constants/sourceMetricMap'
+import { getScoreColor } from '../utils/scoring'
 import JsonLd from '../components/seo/JsonLd'
 import {
   generateCanonicalUrl,
@@ -24,48 +22,6 @@ import {
   generateOgpMeta,
   generateOrganizationSchema,
 } from '../utils/seo'
-
-interface MetricRowProps {
-  label: string
-  metricKey: MetricKey
-  value: number
-  unit: string
-  inverted?: boolean
-  normalizedValue: number
-  acquiredSources: Set<string>
-}
-
-// スコア1項目分の表示行。
-// 値だけでなく、出典の有無と良し悪しの目安も同時に見せる。
-function MetricRow({ label, metricKey, value, unit, inverted = false, normalizedValue, acquiredSources }: MetricRowProps) {
-  const barColor = normalizedValue >= 70 ? 'bg-green-500' : normalizedValue >= 40 ? 'bg-yellow-500' : 'bg-red-500'
-  const sourceKey = METRIC_SOURCE_MAP[metricKey]
-  const acquired = sourceKey ? acquiredSources.has(sourceKey) : false
-
-  return (
-    <div className="py-3 border-b border-gray-100 last:border-0">
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">{label}</span>
-          {sourceKey && (
-            <SourceBadge source={sourceKey as SourceName} acquired={acquired} />
-          )}
-        </div>
-        <span className="text-sm font-semibold text-gray-800">
-          {value}
-          {unit}
-          {inverted && <span className="text-xs text-gray-400 ml-1">(少ないほど良い)</span>}
-        </span>
-      </div>
-      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all ${barColor}`}
-          style={{ width: `${normalizedValue}%` }}
-        />
-      </div>
-    </div>
-  )
-}
 
 // 企業ごとのスコア詳細を確認する画面。
 export default function CompanyDetail() {
@@ -133,8 +89,6 @@ export default function CompanyDetail() {
     )
   }
 
-  const normalized = normalizeScores(company.scores)
-  const acquiredSources = new Set(company.dataSources.map((d) => d.source))
   const scoreColorClass = {
     green: 'text-green-700',
     yellow: 'text-yellow-700',
@@ -241,68 +195,8 @@ export default function CompanyDetail() {
             </div>
           </div>
 
-          {/* 個別指標の数値と出典を確認する一覧。 */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">各指標の詳細</h2>
-            <MetricRow
-              label="技術スタックの新しさ"
-              metricKey="techStackModernity"
-              value={company.scores.techStackModernity}
-              unit=" / 10"
-              normalizedValue={normalized.techStackModernity}
-              acquiredSources={acquiredSources}
-            />
-            <MetricRow
-              label="リモート率"
-              metricKey="remoteRate"
-              value={company.scores.remoteRate}
-              unit="%"
-              normalizedValue={normalized.remoteRate}
-              acquiredSources={acquiredSources}
-            />
-            <MetricRow
-              label="月間残業時間（推定）"
-              metricKey="estimatedOvertimeHours"
-              value={company.scores.estimatedOvertimeHours}
-              unit="時間"
-              inverted
-              normalizedValue={normalized.estimatedOvertimeHours}
-              acquiredSources={acquiredSources}
-            />
-            <MetricRow
-              label="離職率（推定）"
-              metricKey="turnoverRate"
-              value={company.scores.turnoverRate}
-              unit="%"
-              inverted
-              normalizedValue={normalized.turnoverRate}
-              acquiredSources={acquiredSources}
-            />
-            <MetricRow
-              label="定着率（推定）"
-              metricKey="retentionRate"
-              value={company.scores.retentionRate}
-              unit="%"
-              normalizedValue={normalized.retentionRate}
-              acquiredSources={acquiredSources}
-            />
-            <MetricRow
-              label="開発環境スコア"
-              metricKey="devEnvironment"
-              value={company.scores.devEnvironment}
-              unit=" / 10"
-              normalizedValue={normalized.devEnvironment}
-              acquiredSources={acquiredSources}
-            />
-            <MetricRow
-              label="スキルアップ支援"
-              metricKey="skillUpSupport"
-              value={company.scores.skillUpSupport}
-              unit=" / 10"
-              normalizedValue={normalized.skillUpSupport}
-              acquiredSources={acquiredSources}
-            />
-          </div>
+          {/* 総合スコアと7指標の内訳を一体で表示。 */}
+          <ScoreDisplay scores={company.scores} />
         </div>
 
         {/* 読了の区切りに広告を挿入する。 */}
