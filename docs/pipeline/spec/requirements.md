@@ -11,9 +11,9 @@
 | ID | 要件 | 詳細 |
 |---|---|---|
 | FR-1 | 複数ソースのスクレイピング | connpass / openwork / github / ir から並列に企業データを取得 |
-| FR-2 | raw_documents 保存 | スクレイピング生テキストを Supabase に記録（監査証跡） |
+| FR-2 | company_scrapes 保存 | スクレイピング生テキストを Supabase に記録（監査証跡） |
 | FR-3 | Ollama による数値抽出 | テキストから7指標 + description + tags を自動抽出 |
-| FR-4 | companies テーブル更新 | 抽出した数値で既存企業レコードを upsert |
+| FR-4 | company_scores / companies 更新 | 抽出した数値を `company_scores` に upsert し、description/tags を `companies` に反映 |
 | FR-5 | dry-run モード | DB 書き込みなしでスクレイプ・抽出を検証 |
 | FR-6 | エラー継続処理 | 1スクレイパー失敗時も他は処理（失敗を記録） |
 
@@ -47,7 +47,7 @@ Step 1: スクレイピング（並列）
     ScrapedDocument[]
     (4件、うち0–4件が成功)
          ↓
-Step 2: raw_documents テーブル保存
+Step 2: company_scrapes テーブル保存
 ┌─────────────────────────────────────┐
 │ if (!dryRun) {                      │
 │   for each doc:                     │
@@ -86,13 +86,18 @@ Step 5: バリデーション
 │  - null の外側値は null に置換      │
 └─────────────────────────────────────┘
          ↓
-Step 6: companies テーブル更新
+Step 6: company_scores UPSERT / companies UPDATE
 ┌─────────────────────────────────────┐
 │ if (!dryRun) {                      │
-│   only non-null fields:             │
-│     UPDATE companies                │
+│   only non-null score fields:       │
+│     UPSERT company_scores           │
 │     SET tech_stack_modernity = 8,   │
 │         remote_rate = 75, ...       │
+│                                     │
+│   only non-null company fields:     │
+│     UPDATE companies                │
+│     SET description = "...",        │
+│         tags = [...]                │
 │     WHERE id = companyId            │
 │ }                                   │
 └─────────────────────────────────────┘
@@ -228,7 +233,7 @@ npx tsx pipeline/run.ts --company mercari-jp --source connpass --verbose
 | テスト対象 | 内容 |
 |---|---|
 | 並行実行 | 複数スクレイパーが `Promise.all` で実行される（時間で検証） |
-| raw_documents 保存 | INSERT が各ドキュメント毎に呼ばれる |
+| company_scrapes 保存 | INSERT が各ドキュメント毎に呼ばれる |
 | テキスト結合 | `=== source ===\n...` 形式で正しく結合 |
 | Ollama 呼び出し | combinedContent が正しく渡されている |
 | バリデーション | 範囲外の値が null に置換される |
@@ -288,4 +293,3 @@ npx tsx pipeline/run.ts --company mercari-jp --source connpass --verbose
     ├─ 通常実行: 失敗時 throw
     └─ dry-run: ログのみ
 ```
-

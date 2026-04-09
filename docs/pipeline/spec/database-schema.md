@@ -32,6 +32,8 @@ erDiagram
         smallint retention_rate "0-100"
         smallint dev_environment "1-10"
         smallint skill_up_support "1-10"
+        smallint github_activity_bonus "0-5"
+        smallint connpass_bonus "0-5"
         timestamptz scored_at "スコア更新日時"
     }
     
@@ -151,6 +153,8 @@ CREATE TABLE public.company_scores (
   retention_rate           SMALLINT NOT NULL DEFAULT 80 CHECK (retention_rate BETWEEN 0 AND 100),
   dev_environment          SMALLINT NOT NULL DEFAULT 5  CHECK (dev_environment BETWEEN 1 AND 10),
   skill_up_support         SMALLINT NOT NULL DEFAULT 5  CHECK (skill_up_support BETWEEN 1 AND 10),
+  github_activity_bonus    SMALLINT NOT NULL DEFAULT 0  CHECK (github_activity_bonus BETWEEN 0 AND 5),
+  connpass_bonus           SMALLINT NOT NULL DEFAULT 0  CHECK (connpass_bonus BETWEEN 0 AND 5),
   scored_at                TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
@@ -167,6 +171,8 @@ CREATE TABLE public.company_scores (
 | `retention_rate` | SMALLINT | ✓ | `80` | `0–100` | 定着率（パイプラインで更新） |
 | `dev_environment` | SMALLINT | ✓ | `5` | `1–10` | 開発環境の良さ（パイプラインで更新） |
 | `skill_up_support` | SMALLINT | ✓ | `5` | `1–10` | スキルアップ支援の充実度（パイプラインで更新） |
+| `github_activity_bonus` | SMALLINT | ✓ | `0` | `0–5` | GitHub 活動によるボーナス加点 |
+| `connpass_bonus` | SMALLINT | ✓ | `0` | `0–5` | connpass 活動によるボーナス加点 |
 | `scored_at` | TIMESTAMPTZ | ✓ | `now()` | — | スコア更新日時 |
 
 ### 2.3 初期データ
@@ -174,9 +180,9 @@ CREATE TABLE public.company_scores (
 Seed SQL で暫定値を登録（companies と同時に INSERT）。例：
 
 ```sql
-INSERT INTO public.company_scores (company_id, tech_stack_modernity, remote_rate, estimated_overtime_hours, turnover_rate, retention_rate, dev_environment, skill_up_support) VALUES
-  ('mercari-jp', 5, 50, 30, 15, 80, 5, 5),
-  ('cyberagent', 5, 50, 30, 15, 80, 5, 5),
+INSERT INTO public.company_scores (company_id, tech_stack_modernity, remote_rate, estimated_overtime_hours, turnover_rate, retention_rate, dev_environment, skill_up_support, github_activity_bonus, connpass_bonus) VALUES
+  ('mercari-jp', 5, 50, 30, 15, 80, 5, 5, 0, 0),
+  ('cyberagent', 5, 50, 30, 15, 80, 5, 5, 0, 0),
   ...
 ```
 
@@ -386,7 +392,8 @@ supabase/migrations/
 ├── 20260405114531_create_companies_table.sql
 ├── 20260405120000_create_raw_documents.sql
 ├── 20260405130000_add_github_source.sql
-└── 20260407000000_refactor_scores_and_scrapes.sql
+├── 20260407000000_refactor_scores_and_scrapes.sql
+└── 20260410000000_add_bonus_columns_to_company_scores.sql
 ```
 
 バージョン管理（Git）で履歴を管理。
@@ -517,7 +524,7 @@ SELECT * FROM pg_proc WHERE proname = 'set_updated_at';
 ### 10.1 RLS ポリシー
 
 - `companies`: 全員読み取り可（public）
-- `raw_documents`: 全員読み取り可、service_role のみ書き込み可
+- `company_scrapes`: 全員読み取り可、service_role のみ書き込み可
 
 ### 10.2 認証
 
@@ -529,4 +536,3 @@ const supabase = createClient(
   process.env.SUPABASE_KEY  // ← service_role key
 )
 ```
-

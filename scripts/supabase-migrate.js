@@ -52,8 +52,13 @@ async function migrate() {
     console.log('✅ 接続成功！\n');
 
     // マイグレーション SQL を読み込み
-    const migrationPath = path.join(__dirname, '../supabase/migrations/20260407000000_refactor_scores_and_scrapes.sql');
-    const migrationSql = fs.readFileSync(migrationPath, 'utf8');
+    const migrationFiles = [
+      '../supabase/migrations/20260407000000_refactor_scores_and_scrapes.sql',
+      '../supabase/migrations/20260410000000_add_bonus_columns_to_company_scores.sql',
+    ];
+    const migrationSql = migrationFiles
+      .map((file) => fs.readFileSync(path.join(__dirname, file), 'utf8'))
+      .join('\n\n');
 
     // SQL を実行
     console.log('⏳ テーブルを作成中...');

@@ -145,7 +145,11 @@ describe('runPipeline', () => {
 
       await runPipeline({ companyId: 'mercari-jp', sources: ['connpass'] })
 
-      expect(mockUpsert).toHaveBeenCalledWith('mercari-jp', scores)
+      expect(mockUpsert).toHaveBeenCalledWith(
+        'mercari-jp',
+        scores,
+        expect.arrayContaining([expect.objectContaining({ source: 'connpass' })])
+      )
     })
   })
 

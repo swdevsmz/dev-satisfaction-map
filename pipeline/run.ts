@@ -131,7 +131,7 @@ export async function runPipeline(options: PipelineOptions): Promise<void> {
   // Step 2: Ollama でスコア抽出
   console.log(`\n🤖 Ollama (${ process.env.OLLAMA_MODEL ?? 'gemma2' }) でスコア抽出中...`)
   const combinedContent = docs
-    .map((d) => `=== ${ d.source } ===\n${ d.content }`)
+    .map((d) => compactDocumentForLlm(d))
     .join('\n\n')
 
   if (verbose) {
@@ -153,13 +153,105 @@ export async function runPipeline(options: PipelineOptions): Promise<void> {
   // Step 3: companies テーブルを upsert
   if (!dryRun) {
     console.log(`\n📝 companies テーブルを更新中...`)
-    await upsertCompanyScores(companyId, scores)
+    await upsertCompanyScores(companyId, scores, docs)
     console.log('  ✓ 更新完了')
   } else {
     console.log('\n[dry-run] companies テーブルへの書き込みをスキップ')
   }
 
   console.log('\n✅ パイプライン完了\n')
+}
+
+function compactDocumentForLlm(doc: ScrapedDocument): string {
+  const lines = doc.content.split('\n')
+  const compacted: string[] = []
+  let recentRepoCount = 0
+  let recentEventCount = 0
+  let inRepoSection = false
+  let inEventSection = false
+  let inReviewSection = false
+  let totalLength = 0
+
+  const shouldKeep = (line: string): boolean => {
+    if (
+      line.startsWith('企業ID:') ||
+      line.startsWith('ソース:') ||
+      line.startsWith('URL:') ||
+      line.startsWith('GitHub org:') ||
+      line.startsWith('公開リポジトリ数:') ||
+      line.startsWith('フォロワー数:') ||
+      line.startsWith('過去30日のイベント数:') ||
+      line.startsWith('tech_stack_modernity推定:') ||
+      line.startsWith('dev_environment推定:') ||
+      line.startsWith('開催件数（過去1年）:') ||
+      line.startsWith('平均定員数:') ||
+      line.startsWith('skill_up_support推定:') ||
+      line.startsWith('技術タグ:') ||
+      line.startsWith('【口コミ抜粋') ||
+      line.startsWith('総合評価スコア') ||
+      line.startsWith('残業時間') ||
+      line.startsWith('有給休暇消化率') ||
+      line.startsWith('待遇面') ||
+      line.startsWith('社員の士気') ||
+      line.startsWith('風通しの良さ') ||
+      line.startsWith('社員の相互尊重') ||
+      line.startsWith('20代成長環境') ||
+      line.startsWith('人材の長期育成') ||
+      line.startsWith('法令順守意識') ||
+      line.startsWith('人事評価の適正感') ||
+      line.startsWith('【データ取得不可') ||
+      line.startsWith('【IR情報】')
+    ) {
+      return true
+    }
+
+    if (line.startsWith('【リポジトリ一覧')) {
+      inRepoSection = true
+      return true
+    }
+
+    if (line.startsWith('【イベント一覧')) {
+      inEventSection = true
+      return true
+    }
+
+    if (line.startsWith('【口コミ抜粋')) {
+      inReviewSection = true
+      return true
+    }
+
+    if (inRepoSection && line.startsWith('- ') && recentRepoCount < 5) {
+      recentRepoCount++
+      return true
+    }
+
+    if (inEventSection && line.startsWith('- ') && recentEventCount < 5) {
+      recentEventCount++
+      return true
+    }
+
+    if (inReviewSection && line.startsWith('- ')) {
+      return true
+    }
+
+    return false
+  }
+
+  for (const line of lines) {
+    const normalized = line.trim().replace(/\s+/g, ' ')
+    if (!normalized) continue
+    if (shouldKeep(normalized)) {
+      compacted.push(normalized)
+      totalLength += normalized.length
+      if (totalLength > 4000) break
+    }
+  }
+
+  if (compacted.length === 0) {
+    compacted.push(...lines.slice(0, 20).map((line) => line.trim().replace(/\s+/g, ' ')).filter(Boolean))
+  }
+
+  return `=== ${ doc.source } ===\n${ compacted.join('\n') }`
 }
 
 // ── CLI引数パース ────────────────────────────────────────

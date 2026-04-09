@@ -42,7 +42,10 @@ JSON形式:
       prompt,
       stream: false,
       format: 'json',
-      options: { temperature: 0.1 },
+      options: {
+        temperature: 0.1,
+        num_predict: 256,
+      },
     }),
   })
 

@@ -121,6 +121,20 @@ function hasBlockedOrErrorContent($: cheerio.CheerioAPI): boolean {
 
 function pushRatingLines(lines: string[], $: cheerio.CheerioAPI) {
   const seen = new Set<string>()
+  const wantedLabels = [
+    '総合評価スコア',
+    '残業時間（月間）',
+    '有給休暇消化率',
+    '待遇面の満足度',
+    '社員の士気',
+    '風通しの良さ',
+    '社員の相互尊重',
+    '20代成長環境',
+    '人材の長期育成',
+    '法令順守意識',
+    '人事評価の適正感',
+  ]
+  const labelSeen = new Set<string>()
 
   // JSON-LD から総合評価スコアを抽出
   $('script[type="application/ld+json"]').each((_, el) => {
@@ -146,24 +160,17 @@ function pushRatingLines(lines: string[], $: cheerio.CheerioAPI) {
   $('dt').each((_, dt) => {
     const label = $(dt).text().trim()
     if (!label) return
+    if (!wantedLabels.some((wanted) => label.includes(wanted))) return
     const ddText = $(dt).next('dd').find('span.fs-14, span').first().text().trim()
       || $(dt).next('dd').text().trim()
     if (!ddText || ddText.length > 50) return
+    if (ddText === '--') return
+    const normalizedLabel = wantedLabels.find((wanted) => label.includes(wanted)) ?? label
+    if (labelSeen.has(normalizedLabel)) return
     const row = `${ label }: ${ ddText }`
     if (!seen.has(row)) { lines.push(row); seen.add(row) }
+    labelSeen.add(normalizedLabel)
   })
-
-  // 採用者数・離職者数（turnover計算のため）
-  const hiringData: string[] = []
-  $('dd.d-ib.ml-20').each((_, el) => {
-    const text = $(el).text().trim()
-    if (/採用者数|離職者数/.test(text)) {
-      hiringData.push(text)
-    }
-  })
-  if (hiringData.length > 0) {
-    lines.push(`採用・離職データ: ${ hiringData.slice(0, 3).join(' / ') }`)
-  }
 }
 
 function pushReviewLines(lines: string[], $: cheerio.CheerioAPI) {
@@ -273,10 +280,8 @@ export async function scrapeOpenWork(
   ]
 
   pushRatingLines(lines, $)
-
   lines.push('', '【口コミ抜粋（最新5件）】')
   pushReviewLines(lines, $)
-
   if (lines.length <= 7) {
     lines.push('（評価データが取得できませんでした。ログイン必須の可能性があります）')
   }

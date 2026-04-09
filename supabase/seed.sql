@@ -12,11 +12,12 @@ ON CONFLICT (id) DO NOTHING;
 -- Seed company scores (separate table post-refactor)
 INSERT INTO public.company_scores
   (company_id, tech_stack_modernity, remote_rate, estimated_overtime_hours,
-   turnover_rate, retention_rate, dev_environment, skill_up_support, scored_at)
+   turnover_rate, retention_rate, dev_environment, skill_up_support,
+   github_activity_bonus, connpass_bonus, scored_at)
 VALUES
-  ('mercari-jp', 9, 90, 15, 18, 82, 9, 8, NOW()),
-  ('smarthr', 8, 95, 10, 8, 92, 8, 7, NOW()),
-  ('cyberagent', 7, 60, 30, 25, 75, 7, 9, NOW()),
-  ('freee', 7, 80, 20, 15, 85, 9, 7, NOW()),
-  ('rakuten-tech', 4, 40, 45, 30, 70, 5, 5, NOW())
+  ('mercari-jp', 9, 90, 15, 18, 82, 9, 8, 0, 0, NOW()),
+  ('smarthr', 8, 95, 10, 8, 92, 8, 7, 0, 0, NOW()),
+  ('cyberagent', 7, 60, 30, 25, 75, 7, 9, 0, 0, NOW()),
+  ('freee', 7, 80, 20, 15, 85, 9, 7, 0, 0, NOW()),
+  ('rakuten-tech', 4, 40, 45, 30, 70, 5, 5, 0, 0, NOW())
 ON CONFLICT (company_id) DO NOTHING;

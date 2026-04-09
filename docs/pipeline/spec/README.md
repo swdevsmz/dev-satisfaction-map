@@ -11,7 +11,7 @@
 | [requirements.md](./requirements.md) | 要件定義（FR/NFR）、全体アーキテクチャ、CLI インターフェース、エラーハンドリング戦略、テスト戦略 |
 | [scrapers.md](./scrapers.md) | 各スクレイパー詳細実装仕様（connpass/openwork/github/ir）、データ抽出アルゴリズム、スコア算出式 |
 | [ollama.md](./ollama.md) | Ollama API 仕様、プロンプトテンプレート、JSON パース、バリデーション関数、テストケース |
-| [database-schema.md](./database-schema.md) | Supabase テーブル定義（companies / raw_documents）、カラム仕様、RLS、インデックス、データフロー |
+| [database-schema.md](./database-schema.md) | Supabase テーブル定義（companies / company_scrapes / company_scores）、カラム仕様、RLS、インデックス、データフロー |
 
 ---
 
@@ -117,7 +117,7 @@ Supabase データベース テーブル定義・運用。
    ├─ トリガー（updated_at 自動更新）
    ├─ RLS（全員読み取り可）
    └─ 初期データ（seed）
-3. raw_documents テーブル
+3. company_scrapes テーブル
    ├─ テーブル定義
    ├─ カラム仕様（6カラム）
    ├─ インデックス（3本）
@@ -151,7 +151,7 @@ Supabase データベース テーブル定義・運用。
 | スコア算出式を知りたい | scrapers.md | 4-4, 4-5（GitHub） |
 | テストケースを確認 | ollama.md | 8. テストケース |
 | テーブル構造を確認 | database-schema.md | 1. 全体概要 / 2. companies テーブル |
-| raw_documents の仕様 | database-schema.md | 3. raw_documents テーブル |
+| company_scrapes の仕様 | database-schema.md | 3. company_scrapes テーブル |
 | DB クエリを書きたい | database-schema.md | 9. 監視・運用 / 10. トラブルシューティング |
 | CHECK 制約を確認 | database-schema.md | 5. CHECK 制約一覧 |
 
@@ -184,4 +184,3 @@ Supabase データベース テーブル定義・運用。
 - **親**: [`../README.md`](../README.md)
 - **アーキテクチャ**: [`../architecture/`](../architecture/)
 - **コード**: `pipeline/` ディレクトリ
-

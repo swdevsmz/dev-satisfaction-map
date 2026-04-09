@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS public.company_scores (
   retention_rate           SMALLINT NOT NULL DEFAULT 80 CHECK (retention_rate BETWEEN 0 AND 100),
   dev_environment          SMALLINT NOT NULL DEFAULT 5  CHECK (dev_environment BETWEEN 1 AND 10),
   skill_up_support         SMALLINT NOT NULL DEFAULT 5  CHECK (skill_up_support BETWEEN 1 AND 10),
+  github_activity_bonus    SMALLINT NOT NULL DEFAULT 0  CHECK (github_activity_bonus BETWEEN 0 AND 5),
+  connpass_bonus           SMALLINT NOT NULL DEFAULT 0  CHECK (connpass_bonus BETWEEN 0 AND 5),
   scored_at                TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -49,6 +51,8 @@ INSERT INTO public.company_scores (
   retention_rate,
   dev_environment,
   skill_up_support,
+  github_activity_bonus,
+  connpass_bonus,
   scored_at
 )
 SELECT
@@ -60,6 +64,8 @@ SELECT
   COALESCE(retention_rate, 80),
   COALESCE(dev_environment, 5),
   COALESCE(skill_up_support, 5),
+  0,
+  0,
   updated_at
 FROM public.companies
 ON CONFLICT (company_id) DO NOTHING;

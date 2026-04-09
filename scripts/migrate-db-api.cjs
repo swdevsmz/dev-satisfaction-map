@@ -60,14 +60,20 @@ async function runMigration() {
     console.log(`📍 Supabase URL: ${supabaseUrl}\n`);
 
     // マイグレーション SQL を読み込み
-    const migrationPath = path.join(__dirname, '../supabase/migrations/20260407000000_refactor_scores_and_scrapes.sql');
-    const migrationSql = fs.readFileSync(migrationPath, 'utf8');
+    const migrationFiles = [
+      '../supabase/migrations/20260407000000_refactor_scores_and_scrapes.sql',
+      '../supabase/migrations/20260410000000_add_bonus_columns_to_company_scores.sql',
+    ];
+    const migrationSql = migrationFiles
+      .map((file) => fs.readFileSync(path.join(__dirname, file), 'utf8'))
+      .join('\n\n');
 
     console.log('⏳ マイグレーション実行中...');
     console.log('  - company_scores テーブル作成');
     console.log('  - スコアデータ移行');
     console.log('  - companies テーブルからスコアカラム削除');
     console.log('  - raw_documents → company_scrapes リネーム\n');
+    console.log('  - company_scores にボーナス列を追加\n');
 
     // SQL を 1 つずつ実行するため、セミコロンで分割
     const statements = migrationSql

@@ -22,7 +22,7 @@ Step 1: スクレイピング（並列）
   ↓
   ScrapedDocument[]
   ↓
-Step 2: raw_documents テーブルへ保存
+Step 2: company_scrapes テーブルへ保存
   ↓
 Step 3: Ollama への入力テキスト結合
   === connpass ===
@@ -34,13 +34,13 @@ Step 4: Ollama による数値抽出
   ↓
   ExtractedScores（9フィールド）
   ↓
-Step 5: Supabase companies テーブルへ upsert
+Step 5: Supabase company_scores UPSERT / companies UPDATE
 ```
 
 **セクション**:
 1. 全体フロー図
 2. Step 1–5 の詳細（各ステップの入出力・型定義）
-3. raw_documents テーブル スキーマ
+3. company_scrapes テーブル スキーマ
 4. companies テーブル スキーマ
 5. dry-run と通常実行の違い
 6. 注意事項
@@ -70,4 +70,3 @@ Step 5: Supabase companies テーブルへ upsert
 - **要件・全体設計**: [`spec/requirements.md`](../spec/requirements.md)
 - **スクレイパー詳細**: [`spec/scrapers.md`](../spec/scrapers.md)
 - **Ollama 詳細**: [`spec/ollama.md`](../spec/ollama.md)
-
