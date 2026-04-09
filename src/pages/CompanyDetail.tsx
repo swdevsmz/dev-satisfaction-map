@@ -196,7 +196,7 @@ export default function CompanyDetail() {
           </div>
 
           {/* 総合スコアと7指標の内訳を一体で表示。 */}
-          <ScoreDisplay scores={company.scores} />
+          <ScoreDisplay scores={company.scores} dataSources={company.dataSources} />
         </div>
 
         {/* 読了の区切りに広告を挿入する。 */}

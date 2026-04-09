@@ -1,26 +1,42 @@
 import { getScoreColor, normalizeScores } from '../../utils/scoring'
-import type { CompanyScores } from '../../types/company'
+import type { CompanyScores, DataSource } from '../../types/company'
+import { METRIC_SOURCE_MAP, type SourceName, type MetricKey } from '../../constants/sourceMetricMap'
+import SourceBadge from './SourceBadge'
 
 interface ScoreDisplayProps {
   scores: CompanyScores
+  dataSources?: DataSource[]
 }
 
 interface MetricRowProps {
   label: string
+  metricKey: MetricKey
   value: number
   unit: string
   normalizedValue: number
   inverted?: boolean
+  acquiredSources: Set<string>
 }
 
-function MetricRow({ label, value, unit, normalizedValue, inverted = false }: MetricRowProps) {
+function MetricRow({
+  label,
+  metricKey,
+  value,
+  unit,
+  normalizedValue,
+  inverted = false,
+  acquiredSources,
+}: MetricRowProps) {
   const barColor = normalizedValue >= 70 ? 'bg-green-500' : normalizedValue >= 40 ? 'bg-yellow-500' : 'bg-red-500'
+  const sourceKey = METRIC_SOURCE_MAP[metricKey]
+  const acquired = sourceKey ? acquiredSources.has(sourceKey) : false
 
   return (
     <div className="py-3 border-b border-gray-100 last:border-0">
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">{label}</span>
+          {sourceKey && <SourceBadge source={sourceKey as SourceName} acquired={acquired} />}
         </div>
         <span className="text-sm font-semibold text-gray-800">
           {value}
@@ -39,9 +55,11 @@ function MetricRow({ label, value, unit, normalizedValue, inverted = false }: Me
   )
 }
 
-export default function ScoreDisplay({ scores }: ScoreDisplayProps) {
+export default function ScoreDisplay({ scores, dataSources = [] }: ScoreDisplayProps) {
   const normalized = normalizeScores(scores)
   const scoreColor = getScoreColor(scores.happinessScore)
+  const acquiredSources = new Set(dataSources.map((d) => d.source))
+
   const colorClasses = {
     green: 'bg-green-100 text-green-800 border-green-200',
     yellow: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -71,47 +89,61 @@ export default function ScoreDisplay({ scores }: ScoreDisplayProps) {
           <h3 className="text-sm font-semibold text-gray-800 mb-4">各指標の詳細</h3>
           <MetricRow
             label="技術スタックの新しさ"
+            metricKey="techStackModernity"
             value={scores.techStackModernity}
             unit=" / 10"
             normalizedValue={normalized.techStackModernity}
+            acquiredSources={acquiredSources}
           />
           <MetricRow
             label="リモート率"
+            metricKey="remoteRate"
             value={scores.remoteRate}
             unit="%"
             normalizedValue={normalized.remoteRate}
+            acquiredSources={acquiredSources}
           />
           <MetricRow
             label="月間残業時間"
+            metricKey="estimatedOvertimeHours"
             value={scores.estimatedOvertimeHours}
             unit="時間"
             normalizedValue={normalized.estimatedOvertimeHours}
             inverted
+            acquiredSources={acquiredSources}
           />
           <MetricRow
             label="離職率"
+            metricKey="turnoverRate"
             value={scores.turnoverRate}
             unit="%"
             normalizedValue={normalized.turnoverRate}
             inverted
+            acquiredSources={acquiredSources}
           />
           <MetricRow
             label="定着率"
+            metricKey="retentionRate"
             value={scores.retentionRate}
             unit="%"
             normalizedValue={normalized.retentionRate}
+            acquiredSources={acquiredSources}
           />
           <MetricRow
             label="開発環境スコア"
+            metricKey="devEnvironment"
             value={scores.devEnvironment}
             unit=" / 10"
             normalizedValue={normalized.devEnvironment}
+            acquiredSources={acquiredSources}
           />
           <MetricRow
             label="スキルアップ支援"
+            metricKey="skillUpSupport"
             value={scores.skillUpSupport}
             unit=" / 10"
             normalizedValue={normalized.skillUpSupport}
+            acquiredSources={acquiredSources}
           />
         </div>
       </div>
