@@ -5,6 +5,12 @@ export interface ScrapedDocument {
   content: string
 }
 
+/**
+ * Scraper implementation contract.
+ * A scraper must return a complete document or throw a recoverable error.
+ */
+export type Scraper = (companyId: string) => Promise<ScrapedDocument>
+
 // LLMが抽出する構造（nullは「情報なし」）
 export interface ExtractedScores {
   tech_stack_modernity:     number | null  // 1-10

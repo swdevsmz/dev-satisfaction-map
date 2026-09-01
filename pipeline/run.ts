@@ -29,15 +29,10 @@ try {
   // pipeline.env が存在しない場合は環境変数から読む
 }
 
-import { scrapeConnpass } from './scrapers/connpass.js'
-import { scrapeOpenWork } from './scrapers/openwork.js'
-import { scrapeGithub } from './scrapers/github.js'
-import { scrapeIR } from './scrapers/ir.js'
+import { createScraperRegistry, scrapeFromRegistry, type SourceType } from './scrapers/index.js'
 import { extractScores } from './extractors/ollama.js'
 import { insertRawDocument, upsertCompanyScores } from './db/upsert.js'
 import type { ScrapedDocument } from './types.js'
-
-export type SourceType = 'connpass' | 'openwork' | 'ir' | 'github'
 
 export interface PipelineOptions {
   companyId: string
@@ -64,25 +59,18 @@ export async function runPipeline(options: PipelineOptions): Promise<void> {
 
   // Step 1: スクレイピング（並列）
   const docs: ScrapedDocument[] = []
+  const scraperRegistry = createScraperRegistry(acceptTos)
 
   console.log(`📡 スクレイピング中（並列）: ${ sources.join(', ') }`)
 
   const results: ScrapeResult[] = await Promise.all(
     sources.map(async (source): Promise<ScrapeResult> => {
       try {
-        let doc: ScrapedDocument
-
-        if (source === 'connpass') {
-          doc = await scrapeConnpass(companyId)
-        } else if (source === 'openwork') {
-          doc = await scrapeOpenWork(companyId, acceptTos)
-        } else if (source === 'github') {
-          doc = await scrapeGithub(companyId)
-        } else if (source === 'ir') {
-          doc = await scrapeIR(companyId)
-        } else {
+        const definition = scraperRegistry[source]
+        if (!definition) {
           return { source, skipped: true, reason: '未対応ソース' }
         }
+        const doc = await scrapeFromRegistry(definition, companyId)
 
         if (!dryRun) {
           await insertRawDocument(doc)

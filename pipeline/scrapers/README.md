@@ -81,12 +81,37 @@ flowchart TB
 
 ## 共通インターフェース
 
-`pipeline/types.ts` の `ScrapedDocument` を返却します。
+`pipeline/types.ts` の `ScrapedDocument` を返却し、`pipeline/scrapers/index.ts` のレジストリに登録します。
 
 - `companyId`: 対象企業ID
 - `source`: `connpass | openwork | ir | github`
 - `url`: 取得元URL（不明時は `null`）
 - `content`: 後段の LLM 抽出用に整形したテキスト
+
+## 拡張手順
+
+1. 新しいソースを `SourceType` とDBの許可値に追加する。
+2. `(companyId: string) => Promise<ScrapedDocument>` を満たすスクレイパーを作る。
+3. 成功時は `companyId`、正しい `source`、取得元 `url`（不明なら `null`）、LLM向けの `content` を必ず返す。
+4. `createScraperRegistry()` に `ScraperDefinition` を登録する。
+5. ネットワーク・パース・規約エラーは、既存スクレイパーの方針に従い取得不可の理由を `content` に残すか、再試行可能なエラーとしてthrowする。パイプラインはソース単位で捕捉し、非dry-runでは失敗を終了コードに反映する。
+
+最小のアダプター例:
+
+```ts
+const example: ScraperDefinition = {
+  source: 'github',
+  description: 'Example source adapter',
+  scrape: async (companyId) => ({
+    companyId,
+    source: 'github',
+    url: 'https://example.com/data',
+    content: '企業ID: ' + companyId,
+  }),
+}
+```
+
+契約テストは [`index.test.ts`](./index.test.ts) で、内蔵ソースの登録、アダプター出力、必須項目の検証を確認します。
 
 ## 実行フロー（run.ts との関係）
 

@@ -70,7 +70,7 @@ The overall satisfaction score normalizes seven metrics to a 0–100 scale and c
 
 A personalized score can be calculated by changing the importance of each metric. The project also exposes data-source and freshness information so users can judge how reliable a score is.
 
-The methodology and data-provenance documentation will continue to be expanded in [Issue #3](https://github.com/swdevsmz/dev-satisfaction-map/issues/3).
+See [Scoring and data transparency](docs/scoring.md) for the formulas, data-source limitations, freshness, confidence, and missing-data behavior.
 
 ## Technology stack
 

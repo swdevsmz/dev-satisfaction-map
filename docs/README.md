@@ -79,6 +79,7 @@ React 画面側の逆引き仕様書。
 | エラーハンドリング | [requirements.md#4-エラーハンドリング](./pipeline/spec/requirements.md#4-エラーハンドリング) |
 | React 画面構成 | [screen-map.md](./frontend/architecture/screen-map.md) |
 | React 画面仕様 | [screens.md](./frontend/spec/screens.md) |
+| スコア算出・データ出典・欠損値 | [scoring.md](./scoring.md) |
 
 ---
 
@@ -90,5 +91,4 @@ React 画面側の逆引き仕様書。
   - 全体設計（architecture）→ 詳細仕様（spec）の順で読むことを推奨
   - 各ファイルは独立して読むことも可能
 - **更新**: コード変更と同時にドキュメント更新（要件）
-
 
