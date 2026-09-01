@@ -1,8 +1,12 @@
 # エンジニア幸福度マップ
 
+[English README](README.en.md)
+
 求人データ・口コミ・OSSアクティビティから、エンジニアが働きやすい企業を可視化するWebサービスです。
 
 **URL:** https://dev-satisfaction-map.vercel.app/
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
@@ -207,7 +211,7 @@ src/
       JsonLd.tsx                   # JSON-LD構造化データ注入
     share/
       ShareButtons.tsx             # X・Facebookシェアボタン
-      CopyUrlButton.tsx            # URLコピーボタン
+      CopyUrlButton.tsx            # クリップボードコピー
   constants/
     sourceMetricMap.ts             # ソース×指標の静的マッピング
   hooks/
@@ -244,6 +248,28 @@ supabase/
   migrations/                      # DBマイグレーション
 ```
 
-## ライセンス
+---
 
-必要に応じて追記してください。
+## Contributing
+
+バグ報告、データソース追加、スコアリング改善、ドキュメント改善などのコントリビューションを歓迎します。
+
+大きな変更を始める前にIssueを作成し、方針を共有してください。セットアップ、品質チェック、PRルール、外部データ利用時の注意事項は [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
+
+---
+
+## Roadmap
+
+現在の主なロードマップはGitHub Issuesで管理しています。
+
+- [#2 Add GitHub Actions CI for lint and build checks](https://github.com/swdevsmz/dev-satisfaction-map/issues/2)
+- [#3 Document scoring methodology and data provenance](https://github.com/swdevsmz/dev-satisfaction-map/issues/3)
+- [#4 Make data-source integrations easier to extend](https://github.com/swdevsmz/dev-satisfaction-map/issues/4)
+
+完了した改善もIssue / Pull Requestとして履歴を残し、継続的にOSSとしてメンテナンスしていきます。
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
