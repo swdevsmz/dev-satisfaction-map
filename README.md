@@ -1,5 +1,7 @@
 # エンジニア幸福度マップ
 
+[English README](README.en.md)
+
 求人データ・口コミ・OSSアクティビティから、エンジニアが働きやすい企業を可視化するWebサービスです。
 
 **URL:** https://dev-satisfaction-map.vercel.app/
@@ -260,9 +262,9 @@ supabase/
 
 現在の主なロードマップはGitHub Issuesで管理しています。
 
+- [#2 Add GitHub Actions CI for lint and build checks](https://github.com/swdevsmz/dev-satisfaction-map/issues/2)
 - [#3 Document scoring methodology and data provenance](https://github.com/swdevsmz/dev-satisfaction-map/issues/3)
 - [#4 Make data-source integrations easier to extend](https://github.com/swdevsmz/dev-satisfaction-map/issues/4)
-- [#5 Add an English README for broader OSS participation](https://github.com/swdevsmz/dev-satisfaction-map/issues/5)
 
 完了した改善もIssue / Pull Requestとして履歴を残し、継続的にOSSとしてメンテナンスしていきます。
 
